@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  qdb-agents:
+    build: .
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - DATABASE_URL=sqlite:///data/qdb-agents.db
+      - AUDIT_LOG_PATH=/data/audit/
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=3000
+    volumes:
+      - qdb-data:/data
+    restart: unless-stopped
+
+volumes:
+  qdb-data:
