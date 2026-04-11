@@ -13,6 +13,10 @@ import { AuditLogger } from "./core/audit-logger.js";
 import { ToolRegistry } from "./core/tool-registry.js";
 import { InMemoryMessageBus } from "./core/message-bus.js";
 import { SQLiteStateStore } from "./core/state-store.js";
+import { LLMRouter, CLASSIFICATION_RULE, REASONING_RULE } from "./core/llm-router.js";
+import { GuardrailsEngine } from "./core/guardrails.js";
+import { MemoryManager } from "./core/memory.js";
+import { initializeObservability } from "./core/observability.js";
 
 // Governance
 import { PolicyEngine } from "./governance/policy-engine.js";
@@ -54,7 +58,41 @@ async function main(): Promise<void> {
   const messageBus = new InMemoryMessageBus(auditLogger);
   const stateStore = new SQLiteStateStore(join(dataDir, "sessions.db"));
 
+  // ─── New Best-in-Class Modules ──────────────────────────────────────────
+  initializeObservability();
+
+  const llmRouter = new LLMRouter([
+    {
+      provider: "anthropic",
+      apiKey: process.env.ANTHROPIC_API_KEY,
+      defaultModel: "claude-sonnet-4-20250514",
+      enabled: !!process.env.ANTHROPIC_API_KEY,
+    },
+    {
+      provider: "openai",
+      apiKey: process.env.OPENAI_API_KEY,
+      defaultModel: "gpt-4o",
+      enabled: !!process.env.OPENAI_API_KEY,
+    },
+    {
+      provider: "ollama",
+      baseUrl: process.env.OLLAMA_URL ?? "http://localhost:11434",
+      defaultModel: "llama3",
+      enabled: !!process.env.OLLAMA_URL,
+    },
+  ]);
+  llmRouter.addRoutingRule(CLASSIFICATION_RULE);
+  llmRouter.addRoutingRule(REASONING_RULE);
+
+  const guardrails = new GuardrailsEngine();
+  const memoryManager = new MemoryManager(
+    { maxTokens: 100_000, windowSize: 20, enableLongTermMemory: true },
+    llmRouter,
+  );
+
   console.log("Core infrastructure initialized.");
+  console.log(`LLM providers: ${llmRouter.getAvailableProviders().join(", ") || "none (mock mode)"}`);
+  console.log(`Guardrail rules: ${guardrails.getRuleNames().join(", ")}`);
 
   // ─── Register Tools ────────────────────────────────────────────────────
   const tools = [
@@ -100,6 +138,9 @@ async function main(): Promise<void> {
     stateStore,
     auditLogger,
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+    llmRouter,
+    guardrails,
+    memory: memoryManager,
   };
 
   // ─── Initialize Agents ─────────────────────────────────────────────────
@@ -129,6 +170,7 @@ async function main(): Promise<void> {
     auditLogger,
     policyEngine,
     escalationManager,
+    guardrails,
   });
 
   const port = parseInt(process.env.PORT ?? "3000", 10);

@@ -15,6 +15,7 @@ import type { ToolRegistry } from "../core/tool-registry.js";
 import type { IAuditLogger } from "../core/types.js";
 import type { PolicyEngine } from "../governance/policy-engine.js";
 import type { EscalationManager } from "../governance/escalation.js";
+import type { GuardrailsEngine } from "../core/guardrails.js";
 
 export interface ServerDependencies {
   messageBus: InMemoryMessageBus;
@@ -22,6 +23,7 @@ export interface ServerDependencies {
   auditLogger: IAuditLogger;
   policyEngine: PolicyEngine;
   escalationManager: EscalationManager;
+  guardrails?: GuardrailsEngine;
 }
 
 export function createServer(deps: ServerDependencies): Hono {
@@ -34,7 +36,7 @@ export function createServer(deps: ServerDependencies): Hono {
   app.use("/api/*", rateLimit(60));
 
   // Routes
-  app.route("/api/chat", createChatRoutes(deps.messageBus));
+  app.route("/api/chat", createChatRoutes(deps.messageBus, deps.guardrails));
   app.route("/api/admin", createAdminRoutes(
     deps.toolRegistry,
     deps.policyEngine,

@@ -28,6 +28,10 @@ import {
 } from "./types.js";
 import { ToolRegistry } from "./tool-registry.js";
 import { createEnvelope, createResponseEnvelope } from "./message-envelope.js";
+import { type LLMRouter } from "./llm-router.js";
+import { type GuardrailsEngine } from "./guardrails.js";
+import { type MemoryManager } from "./memory.js";
+import { type StreamCollector } from "./streaming.js";
 
 export interface AgentDependencies {
   messageBus: IMessageBus;
@@ -35,6 +39,9 @@ export interface AgentDependencies {
   stateStore: IStateStore;
   auditLogger: IAuditLogger;
   anthropicApiKey?: string;
+  llmRouter?: LLMRouter;
+  guardrails?: GuardrailsEngine;
+  memory?: MemoryManager;
 }
 
 export abstract class BaseAgent {
@@ -45,6 +52,10 @@ export abstract class BaseAgent {
   protected readonly toolRegistry: ToolRegistry;
   protected readonly stateStore: IStateStore;
   protected readonly auditLogger: IAuditLogger;
+  protected readonly llmRouter: LLMRouter | null;
+  protected readonly guardrails: GuardrailsEngine | null;
+  protected readonly memory: MemoryManager | null;
+  protected streamCollector: StreamCollector | null = null;
   private readonly anthropic: Anthropic | null;
 
   constructor(deps: AgentDependencies) {
@@ -52,9 +63,19 @@ export abstract class BaseAgent {
     this.toolRegistry = deps.toolRegistry;
     this.stateStore = deps.stateStore;
     this.auditLogger = deps.auditLogger;
+    this.llmRouter = deps.llmRouter ?? null;
+    this.guardrails = deps.guardrails ?? null;
+    this.memory = deps.memory ?? null;
     this.anthropic = deps.anthropicApiKey
       ? new Anthropic({ apiKey: deps.anthropicApiKey })
       : null;
+  }
+
+  /**
+   * Attach a stream collector for real-time event streaming.
+   */
+  setStreamCollector(collector: StreamCollector): void {
+    this.streamCollector = collector;
   }
 
   /**
