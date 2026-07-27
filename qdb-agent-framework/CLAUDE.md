@@ -16,6 +16,8 @@ npm run simulate  # Run end-to-end workflow simulation
 
 - `docs/PRODUCTION-PLAYBOOK.md` — how to build, secure, communicate, govern, evaluate, guardrail, observe, and version agents in production at a regulated bank ("agents as digital employees" operating model), mapped to this codebase.
 - `docs/LEARNING-PATH.md` — zero-to-hero leveled curriculum (L0 Literate → L5 Program Lead) covering develop, architect, secure, govern, deploy, evaluate, and observe, with role tracks and hands-on labs that use this framework as the lab environment.
+- `docs/assessment.html` — interactive skills assessment (knowledge check + evidence gates → per-discipline ratings, role-target gaps, personalized plan, team aggregation). Self-contained; open in any browser.
+- HTML builds: `npm run docs:html` regenerates `docs/*.html` from the Markdown (Mermaid diagrams pre-rendered to SVG).
 
 ## Architecture
 

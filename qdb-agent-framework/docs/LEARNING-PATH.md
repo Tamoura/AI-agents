@@ -709,6 +709,8 @@ Quarterly: skills-matrix review · golden-dataset refresh · access recertificat
 
 ## Appendix B — Skills Matrix
 
+**Self-service tool:** `docs/assessment.html` — an interactive, self-contained assessment anyone can open in a browser. It combines a 36-question knowledge check with a gate-artifact evidence checklist, computes the 0–3 rating per discipline below, compares against the taker's role targets, and produces a personalized "what's missing" plan. Individual results export as JSON; the program lead loads everyone's exports in its Team view to see this matrix live, including the ≥2-can-teach and owner-team coverage goals. Self-claimed "practiced" ratings must survive review by whoever reviewed the gate artifact.
+
 Rate each person 0–3 per column: **0** none · **1** aware (passed the level's readings) · **2** practiced (passed the gate) · **3** can teach (has taught a cohort module).
 
 Columns: prompting & APIs · tool use & structured output · retrieval · orchestration & multi-agent · MCP/integration · HITL design · evals · CI/CD & deployment · observability & incident response · security & red-teaming · governance & regulatory · program leadership.
