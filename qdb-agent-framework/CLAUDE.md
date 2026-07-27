@@ -12,6 +12,10 @@ npm run dev       # Start development server
 npm run simulate  # Run end-to-end workflow simulation
 ```
 
+## Documentation
+
+- `docs/PRODUCTION-PLAYBOOK.md` — how to build, secure, communicate, govern, evaluate, guardrail, observe, and version agents in production at a regulated bank ("agents as digital employees" operating model), mapped to this codebase.
+
 ## Architecture
 
 - **Core** (`src/core/`): Message bus, tool registry, audit logger, state store, agent runtime
