@@ -233,6 +233,8 @@ Audience: developers, solution architects. Duration: 4–6 weeks (~35–45 hours
 
 **Topics:**
 - The Anthropic pattern taxonomy, in escalating order of autonomy: prompt chaining → routing → parallelization (sectioning/voting) → orchestrator-workers → evaluator-optimizer → full agent loop. Know each one's shape, cost profile, and failure modes.
+- The reasoning-loop taxonomy (the 2026 vocabulary — these names appear in every framework's docs): **ReAct** (think–act–observe loop, the default agent loop), **Plan-and-Execute** (decompose up front, then run steps — cheaper and more auditable than replanning every turn), **Reflexion** (self-critique and retry), **ReWOO** (plan once, execute without intermediate LLM calls), **Tree-of-Thoughts** (search over candidate plans — rarely worth its cost in production). Regulated default: Plan-and-Execute over free-running ReAct wherever the task allows, because the plan is reviewable *before* execution.
+- The 2026 architectural consensus: four separable layers — reasoning (the model), orchestration (control flow over a state graph), memory (its own storage tiers and failure modes), and tool integration (MCP). Memory and orchestration are first-class concerns now, not afterthoughts bolted to a chat loop — this framework's separation of `graph-engine` / `memory` / `state-store` / `tool-registry` reflects it.
 - **The prime directive: most "agent" problems are workflow problems.** Fixed step sequences are cheaper, testable, and auditable. Reach for model-directed control flow only when the path genuinely cannot be enumerated in advance.
 - Decision drivers for regulated contexts: auditability (can you enumerate the paths?), blast radius, latency/cost budgets, failure containment.
 - Single agent + many tools vs. multiple agents: split only along real boundaries — different data clearances, different owner teams, different autonomy ceilings, genuinely different domains. "It feels cleaner" is not a boundary.
@@ -254,7 +256,7 @@ Audience: developers, solution architects. Duration: 4–6 weeks (~35–45 hours
 - Fan-out/fan-in: parallel tool calls and sub-agent branches; joining with timeouts; partial-result policies.
 - Determinism discipline: node logic deterministic wherever possible; LLM calls confined to identified nodes so evals (L3) can target them.
 
-**Resources:** `src/core/graph-engine.ts` line-by-line; LangGraph or Claude Agent SDK tutorials (pick ONE framework, learn it deeply — concepts transfer, syntax doesn't matter).
+**Resources:** `src/core/graph-engine.ts` line-by-line; one framework from the Appendix E shortlist (Claude Agent SDK, LangGraph 1.0, OpenAI Agents SDK, Google ADK, or Microsoft Agent Framework), learned deeply — concepts transfer, syntax doesn't matter.
 
 **Lab:** build a three-node graph in the framework: `classify-incident` → (conditional) `fetch-runbook` → `draft-ticket`, with a checkpoint before `draft-ticket` and proof that killing the process mid-run and restarting resumes correctly.
 
@@ -276,8 +278,9 @@ Audience: developers, solution architects. Duration: 4–6 weeks (~35–45 hours
 - The envelope doctrine (Playbook §4.1): every inter-agent message is a typed, immutable, schema-validated envelope with `correlationId`/`parentMessageId` (causal chain), `dataClassification` + `autonomyLevel` + `requiresApproval` (authority travels with the message), and `ttlSeconds` (no stale instructions). Read `src/core/message-envelope.ts` + `src/core/message-bus.ts`.
 - Why free-text agent-to-agent handoffs are an anti-pattern: unauditable, injectable, and lossy.
 - Classification laundering: the envelope makes it structurally hard for RESTRICTED data to exit through a PUBLIC-cleared agent — trace how.
-- **MCP (Model Context Protocol):** servers, tools, resources, prompts; agent↔system connectivity as a standard; what MCP does and doesn't solve (it carries capability, not authority — your envelope/policy layer still decides *whether*).
-- A2A-style agent↔agent protocols: the landscape and the posture — adopt open protocols at the edges, keep the governance envelope as the internal standard.
+- **MCP (Model Context Protocol):** servers, tools, resources, prompts. Now the settled industry standard for the agent↔tool layer — created by Anthropic, governed since December 2025 by the Linux Foundation's Agentic AI Foundation, and supported by every major framework, which makes MCP-compliant tools portable across stacks. What MCP does and doesn't solve: it carries *capability*, not *authority* — your envelope/policy layer still decides *whether*.
+- **A2A (Agent2Agent):** the agent↔agent protocol — v1.0 released under Linux Foundation governance in April 2026, 150+ member organizations, production support in Azure AI Foundry, Amazon Bedrock AgentCore, and Copilot Studio. Key v1.0 concepts: Agent Cards (now cryptographically signable — portable agent identity), task lifecycle, and the emerging Agent Payments Protocol (AP2). The consensus stack: **MCP vertical (agent→tool), A2A horizontal (agent→agent).**
+- The posture for a bank, unchanged by the standards wave: adopt MCP/A2A at the edges (external tools; agents crossing org or vendor boundaries), keep the governance envelope as the internal standard — open protocols carry the message, your envelope carries the authority context. Signed Agent Cards strengthen, but do not replace, per-agent workload identity (Module 4.2).
 - Message bus operational concerns: delivery semantics, dead-letter queues, replay for audit.
 
 **Resources:** modelcontextprotocol.io spec + server quickstart; this repo's envelope tests (`tests/unit/message-envelope.test.ts`).
@@ -426,10 +429,11 @@ Audience: security engineers and risk/compliance (deep on their own track, surve
   - **LLM06 Excessive agency** — over-broad tools, over-high autonomy, under-specified scope; the anti-control is everything in Playbook §3.2.
   - **LLM02 Sensitive information disclosure** — exfiltration through model outputs, memory, or logs.
   - Insecure output handling (agent output consumed by downstream systems = injection into *them*), supply chain (model/dataset/dependency provenance), plus the rest of the ten in survey.
+- **OWASP Top 10 for Agentic Applications (2026)** — published December 2025 by the OWASP GenAI Security Project (ASI01–ASI10), the agentic companion to the LLM Top 10. Its risk domains are this module's syllabus: planning/goal manipulation, tool misuse, agent identity, supply chain, code execution, memory poisoning, inter-agent communication, cascading failures, human–agent trust exploitation, and rogue agents. Lab discipline: map each ASI item to the framework control that addresses it — regulators increasingly accept this mapping as technical evidence (it aligns with EU AI Act Art. 9 risk management, Art. 14 human oversight, Art. 15 robustness).
 - Agent-specific attack chains: injection → tool abuse → exfiltration; memory poisoning (persistent injection via stored memory); cross-agent laundering (using a high-clearance agent as a confused deputy via inter-agent messages); approval-fatigue exploitation (flooding L2 queues to slip one bad action through).
 - The defense doctrine: injection is not preventable, it is *containable* — bounded blast radius (allowlist × classification ceiling × autonomy ceiling) is the control that holds when all filters fail.
 
-**Resources:** OWASP Top 10 for LLM Applications (current version, full text); Lakera Gandalf or equivalent injection playground for intuition; Anthropic prompt-injection mitigation guidance.
+**Resources:** OWASP Top 10 for LLM Applications + OWASP Top 10 for Agentic Applications 2026 (both current versions, full text — genai.owasp.org); Lakera Gandalf or equivalent injection playground for intuition; Anthropic prompt-injection mitigation guidance.
 
 **Lab:** complete an injection playground to its end; then, for each of the four agent-specific chains above, write the concrete QDB scenario (which agent, which tool, which data) and identify which framework layer stops or bounds it — with file references.
 
@@ -462,7 +466,7 @@ Audience: security engineers and risk/compliance (deep on their own track, surve
 **Topics:**
 - **NIST AI RMF** (+ Generative AI Profile): the MAP / MEASURE / MANAGE / GOVERN functions applied concretely to agents — use it as the skeleton for QDB's framework rather than inventing one.
 - **ISO/IEC 42001** (AI management systems): what certification would require; whether to pursue it (signal value with regulators) or align without certifying.
-- **EU AI Act** as the benchmark: high-risk obligations (risk management system, data governance, logging, human oversight, accuracy/robustness, technical documentation) — mapped to the framework layer that produces each artifact; credit decisions land in Annex III high-risk.
+- **EU AI Act** as the benchmark: high-risk obligations (risk management system, data governance, logging, human oversight, accuracy/robustness, technical documentation) — mapped to the framework layer that produces each artifact; credit decisions land in Annex III high-risk. Timeline as of mid-2026, after the Digital Omnibus agreement (May 2026): transparency obligations apply from August 2, 2026; most Annex III high-risk obligations are deferred to **December 2, 2027**; high-risk AI embedded in regulated products to August 2028. Read the deferral as breathing room for evidence-building, not a reason to delay controls — QDB isn't EU-regulated anyway; the Act is the benchmark because regional regulators borrow from it.
 - **Model risk management** (SR 11-7 as the global reference, applied to LLMs): model inventory (the policy registry *is* it), development vs. validation independence, ongoing monitoring, documented limitations, periodic revalidation. What changes with LLMs: you validate the *system* (harness + evals + guardrails), not the weights.
 - The governance operating structure in practice (Playbook §5.2): committee charter, cadence, quorum for kill decisions; owner-team duties; independent validation's checklist.
 
@@ -581,8 +585,8 @@ Targets: every agent owner team contains ≥1 person at 2+ in evals, HITL, and o
 **By publisher, stable titles (search the title if a link breaks):**
 
 - **Anthropic:** "Building effective agents" (engineering blog) · Messages API + tool-use guides + cookbook · prompt-engineering guide · evaluation guidance · `anthropics/courses` (GitHub) · Claude Agent SDK docs · safety/prompt-injection guidance.
-- **Standards & security:** OWASP Top 10 for LLM Applications · NIST AI RMF 1.0 + Generative AI Profile · ISO/IEC 42001 overview · EU AI Act high-risk summaries + Annex III · SR 11-7 (Fed/OCC model risk guidance) · OpenTelemetry GenAI semantic conventions.
-- **Protocols & frameworks:** modelcontextprotocol.io (spec + quickstarts) · one orchestration framework's docs, learned deeply (Claude Agent SDK or LangGraph) · one eval tool, learned deeply (promptfoo or equivalent).
+- **Standards & security:** OWASP Top 10 for LLM Applications + OWASP Top 10 for Agentic Applications 2026 (ASI01–10, genai.owasp.org) · NIST AI RMF 1.0 + Generative AI Profile · ISO/IEC 42001 overview · EU AI Act high-risk summaries + Annex III (post-Omnibus timeline) · SR 11-7 (Fed/OCC model risk guidance) · OpenTelemetry GenAI semantic conventions.
+- **Protocols & frameworks:** modelcontextprotocol.io (spec + quickstarts) · A2A v1.0 spec (Linux Foundation) · one orchestration framework's docs, learned deeply (from the Appendix E shortlist) · one eval tool, learned deeply (promptfoo or equivalent).
 - **Regional (compliance team to maintain):** QCB circulars and AI guideline · Qatar PDPPL Law 13/2016 summary · NCSA/NIA policy documents.
 - **General:** Google SRE book (SLO + incident chapters) · DeepLearning.AI short courses for L0–L1 ramp (any current prompt-engineering + systems-building pair) · 3Blue1Brown transformer videos for the visually inclined.
 - **This repo:** `PRODUCTION-PLAYBOOK.md` · the codebase itself, module by module as referenced per level.
@@ -595,9 +599,10 @@ Targets: every agent owner team contains ≥1 person at 2+ in evals, HITL, and o
 
 ## Appendix E — Tooling Landscape (choose one per box, revisit annually)
 
-| Need | Options (representative) | Selection guidance |
+| Need | Options (representative, mid-2026) | Selection guidance |
 |---|---|---|
-| Orchestration | Claude Agent SDK · LangGraph · Azure AI Foundry agents | One, deeply; graph/checkpoint/interrupt support is the must-have |
+| Orchestration | Claude Agent SDK (hierarchical subagents) · LangGraph 1.0 · OpenAI Agents SDK · Google ADK · Microsoft Agent Framework 1.0 (AutoGen + Semantic Kernel merged, GA Apr 2026) | One, deeply. The 2026 split: provider-native SDKs (Claude/OpenAI/Google — best-in-class for one model family) vs. cross-provider frameworks (LangGraph, Microsoft AF). Graph/checkpoint/interrupt support is the must-have; all majors now speak MCP, so tools are portable |
+| Agent interop protocols | MCP (Linux Foundation / Agentic AI Foundation) · A2A v1.0 (Linux Foundation) · AP2 (payments, emerging) | MCP for tools is settled — adopt. A2A only where agents cross org/vendor boundaries; signed Agent Cards complement, never replace, workload identity. Authority stays in your envelope |
 | Evals | promptfoo · Braintrust · LangSmith evals | CI-friendly CLI + dataset versioning; start with the simplest |
 | Observability | OTel + Jaeger/Grafana · Datadog LLM obs · Azure Monitor | Must speak OTel GenAI conventions; bank's existing APM wins ties |
 | Guardrails/DLP | Presidio · cloud DLP APIs · guardrails libraries | Arabic-language coverage is the differentiator for QDB |
@@ -625,6 +630,17 @@ Targets: every agent owner team contains ≥1 person at 2+ in evals, HITL, and o
 8. **Memory as a junk drawer** — persist facts only with a reason, a classification, and an expiry.
 9. **"Latest" model in prod** — pin everything; upgrades go through shadow + evals + sign-off.
 10. **Governance as a final step** — the policy file is written *before* the agent, not after; retrofitting governance is 10× the cost.
+
+## Appendix H — Landscape Snapshot (July 2026)
+
+Dated facts the curriculum's judgments rest on — re-verify at the annual content review; everything here churns faster than the principles do.
+
+- **Protocols:** MCP created by Anthropic, governed by the Linux Foundation's Agentic AI Foundation since December 2025; every major framework speaks it — the agent↔tool layer is settled. A2A v1.0 released April 2026 under Linux Foundation governance (150+ member organizations; production support in Azure AI Foundry, Amazon Bedrock AgentCore, Copilot Studio); brings signed Agent Cards and the emerging Agent Payments Protocol (AP2). Consensus stack: MCP vertical, A2A horizontal.
+- **Frameworks (consolidated to a shortlist):** Claude Agent SDK (hierarchical subagents), OpenAI Agents SDK (evolved from Swarm), Google ADK, LangGraph 1.0, Microsoft Agent Framework 1.0 (AutoGen + Semantic Kernel merged, GA April 2026). Provider-native vs. cross-provider is the real axis of choice; MCP convergence makes tools portable either way.
+- **Patterns:** ReAct / Plan-and-Execute / Reflexion / ReWOO / Tree-of-Thoughts is the shared reasoning-loop vocabulary; memory and orchestration are treated as first-class, separable architectural layers.
+- **Security:** OWASP Top 10 for Agentic Applications 2026 (ASI01–ASI10) published December 2025 — the agentic companion to the LLM Top 10; increasingly used as the evidence skeleton for AI-Act-style obligations.
+- **Regulation:** EU AI Act Digital Omnibus (provisional agreement May 2026) moved most Annex III high-risk obligations to December 2, 2027 (transparency: August 2, 2026; embedded high-risk: August 2028). GCC regulators continue to draw on the Act, NIST AI RMF, and ISO/IEC 42001 as reference frames.
+- **What did NOT change and won't:** least privilege via tool allowlists, evals as CI gates, bounded blast radius, the autonomy ladder, named human owners, audit-grade logging. The durable layer is the one this curriculum spends most of its hours on.
 
 ---
 

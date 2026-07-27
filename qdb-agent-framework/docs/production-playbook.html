@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QDB Agentic AI — Production Playbook</title>
+<style>
+:root {
+  --bg: #faf9f6; --panel: #ffffff; --ink: #1f2430; --muted: #5c6470;
+  --accent: #7a1f2b; --accent-soft: #f3e2e4; --line: #e3e0da;
+  --code-bg: #f1efe9; --mark: #8a6d1f; --link: #8f2d3c;
+  --shadow: 0 1px 3px rgba(30,30,40,.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16181d; --panel: #1d2026; --ink: #e8e6e1; --muted: #9aa0aa;
+    --accent: #d98a94; --accent-soft: #3a2226; --line: #2e323a;
+    --code-bg: #24272e; --mark: #d8b45a; --link: #e0949e;
+    --shadow: 0 1px 3px rgba(0,0,0,.4);
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 1.5rem; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.65 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+}
+.layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); max-width: 1280px; margin: 0 auto; }
+nav {
+  position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto;
+  padding: 2rem 1.25rem 3rem; border-right: 1px solid var(--line);
+  font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: .82rem;
+}
+nav .nav-title { font-weight: 700; color: var(--accent); letter-spacing: .04em; text-transform: uppercase; font-size: .72rem; margin-bottom: 1rem; }
+nav ul { list-style: none; margin: 0; padding: 0; }
+nav li { margin: 0; }
+nav a { display: block; padding: .28rem .5rem; color: var(--muted); text-decoration: none; border-radius: 6px; border-left: 2px solid transparent; }
+nav a:hover { color: var(--ink); background: var(--accent-soft); }
+li.toc-d1 { margin-top: .9rem; }
+li.toc-d1 > a { font-weight: 700; color: var(--ink); }
+li.toc-d2 > a { padding-left: 1.1rem; border-left: 2px solid var(--line); border-radius: 0 6px 6px 0; margin-left: .5rem; }
+main { padding: 2.5rem 3rem 6rem; max-width: 860px; }
+header.doc-header { margin-bottom: 2.5rem; padding-bottom: 1.75rem; border-bottom: 3px double var(--accent); }
+.badge {
+  display: inline-block; font-family: -apple-system, "Segoe UI", sans-serif; font-size: .7rem;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--accent);
+  border: 1px solid var(--accent); border-radius: 999px; padding: .2rem .7rem; margin-bottom: 1rem;
+}
+header.doc-header h1 { font-size: 2.1rem; line-height: 1.2; margin: 0 0 .5rem; }
+header.doc-header p { color: var(--muted); font-style: italic; margin: 0; }
+h1, h2, h3, h4 { line-height: 1.25; scroll-margin-top: 1.5rem; position: relative; }
+main > h1 { font-size: 1.7rem; margin-top: 3.5rem; color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: .4rem; }
+h2 { font-size: 1.35rem; margin-top: 2.75rem; }
+h3 { font-size: 1.08rem; margin-top: 2rem; font-family: -apple-system, "Segoe UI", sans-serif; }
+a.anchor { opacity: 0; margin-left: .4rem; text-decoration: none; color: var(--muted); font-size: .8em; }
+h1:hover .anchor, h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 1; }
+a { color: var(--link); }
+p, li { max-width: 72ch; }
+strong { color: var(--ink); }
+code {
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  font-size: .84em; background: var(--code-bg); padding: .12em .38em; border-radius: 4px;
+}
+pre { background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 1rem; overflow-x: auto; }
+pre code { background: none; padding: 0; }
+blockquote { margin: 1.25rem 0; padding: .1rem 1.25rem; border-left: 3px solid var(--accent); background: var(--panel); color: var(--muted); border-radius: 0 8px 8px 0; }
+.table-wrap { overflow-x: auto; margin: 1.25rem 0; border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); }
+table { border-collapse: collapse; width: 100%; font-family: -apple-system, "Segoe UI", sans-serif; font-size: .85rem; background: var(--panel); }
+th { text-align: left; background: var(--accent-soft); color: var(--ink); font-weight: 700; }
+th, td { padding: .55rem .8rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: color-mix(in srgb, var(--accent-soft) 40%, transparent); }
+hr { border: none; border-top: 1px solid var(--line); margin: 3rem 0; }
+em { color: inherit; }
+::selection { background: var(--accent-soft); }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  nav { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--line); }
+  main { padding: 1.5rem 1.25rem 4rem; }
+}
+@media print {
+  nav { display: none; }
+  .layout { display: block; }
+  main { max-width: none; padding: 0; }
+  body { font-size: 11pt; background: #fff; color: #000; }
+  a.anchor { display: none; }
+  h1, h2 { break-after: avoid; }
+  .table-wrap { border: none; box-shadow: none; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav aria-label="Table of contents">
+  <div class="nav-title">Contents</div>
+  <ul>
+<li class="toc-d1"><a href="#running-ai-agents-in-production-in-a-regulated-bank">Running AI Agents in Production in a Regulated Bank</a></li>
+<li class="toc-d2"><a href="#1-the-operating-model-agents-as-digital-employees">1. The Operating Model: Agents as Digital Employees</a></li>
+<li class="toc-d2"><a href="#2-build-reference-architecture">2. Build: Reference Architecture</a></li>
+<li class="toc-d2"><a href="#3-secure">3. Secure</a></li>
+<li class="toc-d2"><a href="#4-communicate-agent-agent-and-agent-human">4. Communicate: Agent ↔ Agent and Agent ↔ Human</a></li>
+<li class="toc-d2"><a href="#5-govern">5. Govern</a></li>
+<li class="toc-d2"><a href="#6-evaluate">6. Evaluate</a></li>
+<li class="toc-d2"><a href="#7-guardrails">7. Guardrails</a></li>
+<li class="toc-d2"><a href="#8-observe">8. Observe</a></li>
+<li class="toc-d2"><a href="#9-version-and-change-management">9. Version and Change Management</a></li>
+<li class="toc-d2"><a href="#10-the-maturity-roadmap-how-to-actually-roll-this-out">10. The Maturity Roadmap (how to actually roll this out)</a></li>
+<li class="toc-d2"><a href="#11-production-readiness-checklist-condensed">11. Production-Readiness Checklist (condensed)</a></li>
+  </ul>
+</nav>
+<main>
+<header class="doc-header">
+  <span class="badge">Playbook · updated July 2026</span>
+  <h1>QDB Agentic AI — Production Playbook</h1>
+  <p>Running agents as digital employees in a regulated bank</p>
+</header>
+<h1 id="running-ai-agents-in-production-in-a-regulated-bank">Running AI Agents in Production in a Regulated Bank<a class="anchor" href="#running-ai-agents-in-production-in-a-regulated-bank" aria-label="link to section">#</a></h1>
+<p><strong>A playbook for QDB: agents as digital employees — how to build, secure, connect, govern, evaluate, guardrail, observe, and version them.</strong></p>
+<p>This document is the operating manual behind the <code>qdb-agent-framework</code> reference implementation in this repository. Each section explains the principle, the industry-standard practice, how the framework implements it today (with file references), and what remains to be done before true production deployment in a regulated environment.</p>
+<hr>
+<h2 id="1-the-operating-model-agents-as-digital-employees">1. The Operating Model: Agents as Digital Employees<a class="anchor" href="#1-the-operating-model-agents-as-digital-employees" aria-label="link to section">#</a></h2>
+<p>The CEO&#39;s framing — &quot;agents as employees/consultants&quot; — is exactly the right mental model for a regulated institution, because everything a bank already knows how to do with <em>people</em> transfers to agents:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>HR concept</th>
+<th>Agent equivalent</th>
+<th>Where it lives in this framework</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Job description</td>
+<td>Agent policy: scope, domains, allowed/denied tools</td>
+<td><code>policies/*.yaml</code> (<code>scope</code>, <code>allowed_tools</code>, <code>denied_tools</code>)</td>
+</tr>
+<tr>
+<td>Employment contract</td>
+<td>Versioned policy signed off by an owner team</td>
+<td><code>owner_team</code>, <code>version</code> fields in policy YAML</td>
+</tr>
+<tr>
+<td>Access badge / system accounts</td>
+<td>Non-human identity with least-privilege entitlements</td>
+<td><code>src/api/middleware/auth.ts</code> (needs workload identity — see §3)</td>
+</tr>
+<tr>
+<td>Delegation of authority matrix</td>
+<td>Autonomy levels (L0–L3) with overrides per operation</td>
+<td><code>autonomy</code> block in policies; <code>src/governance/escalation.ts</code></td>
+</tr>
+<tr>
+<td>Line manager</td>
+<td>Human owner who approves escalations</td>
+<td><code>escalation.rules[].notify</code> roles</td>
+</tr>
+<tr>
+<td>Probation period</td>
+<td>Shadow mode → assisted mode → supervised autonomy</td>
+<td>§10 maturity roadmap</td>
+</tr>
+<tr>
+<td>Performance review</td>
+<td>Continuous evaluation suite + KPI dashboards</td>
+<td>§6 (largest current gap)</td>
+</tr>
+<tr>
+<td>Code of conduct</td>
+<td>System prompt + guardrails</td>
+<td><code>system_prompt</code> in policy; <code>src/core/guardrails.ts</code></td>
+</tr>
+<tr>
+<td>Timesheet / activity log</td>
+<td>Immutable audit trail of every action</td>
+<td><code>src/core/audit-logger.ts</code></td>
+</tr>
+<tr>
+<td>Disciplinary process</td>
+<td>Kill switch, policy revocation, rollback</td>
+<td>§9</td>
+</tr>
+<tr>
+<td>Offboarding</td>
+<td>Deregistration, credential revocation, context destruction</td>
+<td><code>context_policy.clear_context_on_completion</code></td>
+</tr>
+</tbody></table>
+</div><p><strong>The key organizational decision:</strong> every agent must have a named human owner (an &quot;agent manager&quot;) who is accountable for its actions, exactly as a manager is accountable for a direct report. An agent with no owner is shadow IT. The <code>owner_team</code> field in every policy file makes this mandatory at the schema level (<code>src/governance/policy-engine.ts</code> rejects policies without it).</p>
+<p><strong>What regulators will ask first:</strong> &quot;Who is accountable when the agent is wrong?&quot; The answer must never be &quot;the model.&quot; It is always the owner team, operating within a documented delegation-of-authority framework. Agents do not have accountability; they have <em>authority levels</em>, delegated and revocable.</p>
+<hr>
+<h2 id="2-build-reference-architecture">2. Build: Reference Architecture<a class="anchor" href="#2-build-reference-architecture" aria-label="link to section">#</a></h2>
+<h3 id="21-principles">2.1 Principles<a class="anchor" href="#21-principles" aria-label="link to section">#</a></h3>
+<ol>
+<li><strong>Small, specialized agents over one super-agent.</strong> Each agent gets a narrow job description (one policy file), which makes scope, testing, and audit tractable. The router agent (<code>src/agents/router/</code>) classifies intent and dispatches — a pattern equivalent to a front-office triage desk.</li>
+<li><strong>Deterministic orchestration around non-deterministic reasoning.</strong> The LLM decides <em>what to say and which tool to request</em>; deterministic code decides <em>whether it is allowed to</em>. Policy enforcement, escalation, and audit are plain code (<code>src/governance/</code>), never delegated to the model. In a regulated setting this is non-negotiable: you cannot certify a prompt, but you can certify an enforcement engine.</li>
+<li><strong>Graph-based workflows for multi-step processes</strong> (<code>src/core/graph-engine.ts</code>): explicit nodes and edges rather than free-form agent loops, so every path through a workflow is enumerable — which is what an auditor needs.</li>
+<li><strong>Provider abstraction</strong> (<code>src/core/llm-router.ts</code>): route classification tasks to fast/cheap models and reasoning tasks to frontier models, and keep the option of local models (Ollama) for data that must not leave the country. Qatar data-residency requirements (PDPPL, QCB expectations) make Azure Qatar-hosted or on-prem inference the default for CONFIDENTIAL/RESTRICTED data.</li>
+<li><strong>Typed contracts everywhere.</strong> Structured output with schema validation (<code>src/core/structured-output.ts</code>, Zod schemas throughout) — an agent&#39;s output is only accepted if it parses. Free-text glue between systems is where hallucinations become incidents.</li>
+</ol>
+<h3 id="22-the-layers">2.2 The layers<a class="anchor" href="#22-the-layers" aria-label="link to section">#</a></h3>
+<pre><code>┌─────────────────────────────────────────────────────────┐
+│ Channels: chat UI, Teams, email, API   (src/api/)       │
+├─────────────────────────────────────────────────────────┤
+│ Guardrails (input)                     (core/guardrails)│
+├─────────────────────────────────────────────────────────┤
+│ Router agent → specialist agents       (src/agents/)    │
+│   each agent = policy + system prompt + tool allowlist  │
+├─────────────────────────────────────────────────────────┤
+│ Governance: policy engine, escalation, data classifier  │
+│                                        (src/governance/)│
+├─────────────────────────────────────────────────────────┤
+│ Tool registry + manifest               (core/tool-*)    │
+│   data tools (read) / action tools (mutate) /           │
+│   compliance tools                     (src/tools/)     │
+├─────────────────────────────────────────────────────────┤
+│ Guardrails (output) → audit log → observability         │
+├─────────────────────────────────────────────────────────┤
+│ LLM router (Claude / GPT / local)      (core/llm-router)│
+└─────────────────────────────────────────────────────────┘
+</code></pre>
+<p>Every hop is mediated: nothing goes from model to tool, or agent to agent, without passing the policy engine and emitting an audit record.</p>
+<h3 id="23-build-vs-buy">2.3 Build vs. buy<a class="anchor" href="#23-build-vs-buy" aria-label="link to section">#</a></h3>
+<p>Use managed platforms (Azure AI Foundry / AWS Bedrock Agents / Claude Agent SDK) for the runtime where possible, but <strong>own the governance layer yourself</strong>. Vendors give you agents; they do not give you your delegation-of-authority matrix, your Sharia screening rules, or your QCB reporting obligations. The pattern in this repo — thin agents, thick governance — survives any vendor migration.</p>
+<hr>
+<h2 id="3-secure">3. Secure<a class="anchor" href="#3-secure" aria-label="link to section">#</a></h2>
+<p>Threat model for agents = classic app-sec threats <strong>plus</strong> three new classes: prompt injection, excessive agency, and data exfiltration through model context. Reference: OWASP Top 10 for LLM Applications (LLM01 Prompt Injection, LLM06 Excessive Agency, LLM02 Sensitive Information Disclosure).</p>
+<h3 id="31-identity-agents-are-non-human-identities-nhi">3.1 Identity: agents are non-human identities (NHI)<a class="anchor" href="#31-identity-agents-are-non-human-identities-nhi" aria-label="link to section">#</a></h3>
+<ul>
+<li>Each agent gets its <strong>own workload identity</strong> (Entra ID managed identity / service principal on Azure) — never a shared API key, never a human&#39;s credentials. The agent&#39;s identity, not the calling user&#39;s, is what tool backends authorize — combined with the <em>user&#39;s</em> entitlements passed through the envelope (<code>metadata.userId</code>) so an agent can never do for a user what the user couldn&#39;t do themselves (&quot;confused deputy&quot; prevention).</li>
+<li>Short-lived credentials only; secrets in Key Vault; rotation automated.</li>
+<li><strong>Gap in current framework:</strong> <code>src/api/middleware/auth.ts</code> handles inbound API auth, but agents don&#39;t yet carry distinct outbound identities. Before production, each agent&#39;s tool calls must be authenticated as that agent so entitlement review works per-agent, like per-employee access review.</li>
+</ul>
+<h3 id="32-least-privilege-via-tool-allowlists">3.2 Least privilege via tool allowlists<a class="anchor" href="#32-least-privilege-via-tool-allowlists" aria-label="link to section">#</a></h3>
+<p>The single most effective control. An agent physically cannot call a tool that is not on its allowlist — enforced in code, not in the prompt:</p>
+<ul>
+<li><code>allowed_tools</code> / <code>denied_tools</code> in every policy (see <code>policies/it-operations.yaml</code>, which denies <code>qdb.data.query_core_banking</code> to the IT agent).</li>
+<li>The tool registry (<code>src/core/tool-registry.ts</code>) resolves calls only against the agent&#39;s policy; the manifest (<code>src/core/tool-manifest.ts</code>) declares each tool&#39;s <code>operationType</code> (READ/MUTATE) and maximum data classification.</li>
+<li>Treat the tool list like an access-review artifact: quarterly recertification by the owner team, same as user access review.</li>
+</ul>
+<h3 id="33-data-classification-boundaries">3.3 Data classification boundaries<a class="anchor" href="#33-data-classification-boundaries" aria-label="link to section">#</a></h3>
+<p>Every message envelope carries a <code>dataClassification</code> (PUBLIC → INTERNAL → CONFIDENTIAL → RESTRICTED), and every policy declares <code>data_boundaries.max_classification</code>. The data classifier (<code>src/governance/data-classifier.ts</code>) tags content; the policy engine blocks an agent from handling data above its clearance — the same concept as employee security clearance. PII handling per policy (<code>pii_handling: MASK</code>).</p>
+<h3 id="34-prompt-injection-defense-in-depth">3.4 Prompt injection defense in depth<a class="anchor" href="#34-prompt-injection-defense-in-depth" aria-label="link to section">#</a></h3>
+<p>No single control stops injection; layer them:</p>
+<ol>
+<li>Input guardrails pattern-match known injection markers (<code>src/core/guardrails.ts</code> <code>INJECTION_PATTERNS</code>) — necessary but weakest layer.</li>
+<li><strong>Privilege containment is the real defense:</strong> even a fully hijacked agent can only call its allowlisted tools at its data clearance with its autonomy ceiling. Design so that the worst-case injected instruction is <em>bounded</em>, not prevented.</li>
+<li>Treat all retrieved content (documents from ECM, web pages, emails) as untrusted data, never as instructions; keep it in clearly delimited context.</li>
+<li>MUTATE operations always require approval at CONFIDENTIAL+ (hard rule in <code>src/governance/escalation.ts</code>), so injection cannot cause an unreviewed state change on sensitive data.</li>
+</ol>
+<h3 id="35-the-rest-of-the-checklist">3.5 The rest of the checklist<a class="anchor" href="#35-the-rest-of-the-checklist" aria-label="link to section">#</a></h3>
+<ul>
+<li>Output guardrails scan for PII/secrets leaving the system (§7).</li>
+<li>Rate limiting per agent and per user (<code>src/api/middleware/rate-limit.ts</code>) — an agent that loops is a denial-of-wallet and a flood risk.</li>
+<li>Sandboxed execution for any code-running tools (none in this repo yet — keep it that way until there&#39;s a container-isolated executor).</li>
+<li>Pen-test the agent surface: red-team exercises specifically for injection → exfiltration chains, before go-live and annually. QCB will expect this in the same bucket as application penetration testing.</li>
+</ul>
+<hr>
+<h2 id="4-communicate-agent-agent-and-agent-human">4. Communicate: Agent ↔ Agent and Agent ↔ Human<a class="anchor" href="#4-communicate-agent-agent-and-agent-human" aria-label="link to section">#</a></h2>
+<h3 id="41-agent-to-agent">4.1 Agent-to-agent<a class="anchor" href="#41-agent-to-agent" aria-label="link to section">#</a></h3>
+<p>All inter-agent traffic uses one immutable, schema-validated envelope (<code>src/core/message-envelope.ts</code>) over a message bus (<code>src/core/message-bus.ts</code>). The envelope is the contract that makes multi-agent systems auditable:</p>
+<ul>
+<li><code>messageId</code> / <code>correlationId</code> / <code>parentMessageId</code> — full causal chain reconstruction (&quot;which user request caused this agent to call that tool?&quot;).</li>
+<li><code>sourceAgent</code> / <code>targetAgent</code> / <code>action</code> / typed <code>payload</code> — no free-text agent chatter.</li>
+<li><code>dataClassification</code>, <code>requiresApproval</code>, <code>autonomyLevel</code> — governance metadata travels <strong>with</strong> the message, so a downstream agent cannot silently launder restricted data or escalate autonomy.</li>
+<li><code>ttlSeconds</code> — messages expire; no stale instructions executing hours later.</li>
+</ul>
+<p>Industry direction: MCP (Model Context Protocol) for agent→tool connectivity and A2A-style protocols for agent→agent. The envelope pattern here maps cleanly onto both — adopt MCP for tool integration as connectors mature (core banking, ECM, Power BI already have mock tool shapes in <code>src/tools/data/</code>), but keep the governance envelope as your internal standard: open protocols carry the message, your envelope carries the <em>authority context</em>.</p>
+<h3 id="42-agent-to-human-the-autonomy-ladder">4.2 Agent-to-human: the autonomy ladder<a class="anchor" href="#42-agent-to-human-the-autonomy-ladder" aria-label="link to section">#</a></h3>
+<p>Codified as <code>AutonomyLevel</code> in <code>src/core/types.ts</code> and enforced by <code>src/governance/escalation.ts</code>:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Meaning</th>
+<th>Analogy</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>L0_SHADOW</strong></td>
+<td>Agent produces output; nothing is shown/executed. Humans compare after the fact.</td>
+<td>Intern shadowing</td>
+</tr>
+<tr>
+<td><strong>L1_NOTIFY</strong></td>
+<td>Agent acts on read-only tasks, notifies humans of everything</td>
+<td>New hire on supervision</td>
+</tr>
+<tr>
+<td><strong>L2_APPROVE</strong></td>
+<td>Agent proposes; a named human approves before execution</td>
+<td>Maker-checker (four-eyes)</td>
+</tr>
+<tr>
+<td><strong>L3_AUTONOMOUS</strong></td>
+<td>Agent executes within policy; sampled review after the fact</td>
+<td>Delegated authority with audit</td>
+</tr>
+</tbody></table>
+</div><p>Rules that must stay hard-coded (they are, in <code>escalation.ts</code>):</p>
+<ul>
+<li>MUTATE + CONFIDENTIAL/RESTRICTED → always L2 (human approval), regardless of policy.</li>
+<li>Policy <code>overrides</code> can only <em>lower</em> autonomy for a condition, never raise it above the policy ceiling.</li>
+<li>Approval requests go to <strong>named roles</strong> (<code>notify: [&quot;it_manager&quot;, &quot;cio&quot;]</code>), with the full envelope and reasoning attached — an approver who can&#39;t see <em>why</em> is a rubber stamp, which an auditor will flag.</li>
+<li>Approvals are logged as first-class audit events (approver, timestamp, decision, rationale).</li>
+</ul>
+<p><strong>Human-side design matters as much as agent-side:</strong> approval fatigue is the failure mode. If a role receives hundreds of approvals daily, humans stop reading them. Track approval volume and override rate per role; if &gt;95% of requests are approved without modification for a task category over a sustained period, that&#39;s the data-driven case for promoting that category to L3 — via change management (§9), not by editing a prompt.</p>
+<h3 id="43-talking-to-end-users">4.3 Talking to end users<a class="anchor" href="#43-talking-to-end-users" aria-label="link to section">#</a></h3>
+<ul>
+<li>Agents identify themselves as agents. No impersonating humans — a legal/regulatory requirement in a growing number of jurisdictions and basic trust hygiene everywhere.</li>
+<li>Streaming responses (<code>src/core/streaming.ts</code>) with visible status (&quot;checking Azure Monitor…&quot;) so users understand what the agent is doing.</li>
+<li>Every user-facing answer that draws on internal data cites its sources (tool + record), so a human can verify. Uncited claims are how hallucinations enter official records.</li>
+</ul>
+<hr>
+<h2 id="5-govern">5. Govern<a class="anchor" href="#5-govern" aria-label="link to section">#</a></h2>
+<h3 id="51-regulatory-mapping-for-qdb">5.1 Regulatory mapping for QDB<a class="anchor" href="#51-regulatory-mapping-for-qdb" aria-label="link to section">#</a></h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Regime</th>
+<th>What it demands of agents</th>
+<th>Framework hook</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>QCB regulations &amp; guidelines</strong> (incl. its AI guideline for the financial sector)</td>
+<td>Board-approved AI governance framework, model inventory, human oversight, explainability, exit strategy per system</td>
+<td>Policy registry = inventory; autonomy ladder = oversight; audit trail = explainability evidence</td>
+</tr>
+<tr>
+<td><strong>Qatar PDPPL (Law 13/2016)</strong></td>
+<td>Lawful basis, data minimization, security of personal data, cross-border transfer controls</td>
+<td>Data classifier + <code>pii_handling</code> + residency-aware LLM routing</td>
+</tr>
+<tr>
+<td><strong>NCSA / NIA policy</strong></td>
+<td>National information-assurance controls, incident reporting</td>
+<td>Observability + audit + incident runbooks</td>
+</tr>
+<tr>
+<td><strong>Sharia governance</strong> (for Islamic finance products)</td>
+<td>Sharia-compliance screening of recommendations</td>
+<td><code>src/tools/compliance/check-sharia.ts</code>; Sharia board reviews agent policies touching product decisions</td>
+</tr>
+<tr>
+<td><strong>Model risk management</strong> (Basel-style, SR 11-7 as the global reference)</td>
+<td>Model inventory, independent validation, ongoing monitoring, documented limitations</td>
+<td>§6 evaluation + §9 versioning provide the artifacts</td>
+</tr>
+<tr>
+<td><strong>EU AI Act (as international benchmark)</strong></td>
+<td>Credit-decision AI = high-risk: risk management system, logging, human oversight, accuracy/robustness testing</td>
+<td>The full stack in this repo is essentially the high-risk checklist</td>
+</tr>
+</tbody></table>
+</div><p>QDB is a development bank, not a commercial deposit-taker, but QCB supervision and PDPPL still apply, and adopting the high-risk-AI control set positions QDB ahead of where regional regulation is clearly heading.</p>
+<h3 id="52-the-governance-operating-structure">5.2 The governance operating structure<a class="anchor" href="#52-the-governance-operating-structure" aria-label="link to section">#</a></h3>
+<ol>
+<li><strong>AI Governance Committee</strong> (CIO/COO/CRO/Compliance/Sharia representation): approves each new agent, each autonomy promotion, and each material policy change. Meets monthly; emergency path for kill-switch decisions.</li>
+<li><strong>Agent owner teams</strong>: day-to-day accountability, first-line approvals, policy maintenance. Named in every policy file.</li>
+<li><strong>Independent validation</strong> (risk function): evaluates agents before deployment and periodically after — must be organizationally separate from the builders, exactly like model validation vs. model development in credit risk.</li>
+<li><strong>The policy file is the governance artifact.</strong> Everything the committee approves is expressible in the YAML: scope, tools, autonomy, escalation, data boundaries, context lifetime. Git history of <code>policies/</code> <em>is</em> the approval record when combined with protected branches + required reviews (§9).</li>
+</ol>
+<h3 id="53-the-three-questions-every-agent-deployment-must-answer-in-writing">5.3 The three questions every agent deployment must answer in writing<a class="anchor" href="#53-the-three-questions-every-agent-deployment-must-answer-in-writing" aria-label="link to section">#</a></h3>
+<ol>
+<li><strong>What is the worst thing this agent can do if fully compromised?</strong> (bounded-blast-radius analysis — its tools × its data clearance × its autonomy ceiling)</li>
+<li><strong>Who reviews its work, how often, and against what standard?</strong></li>
+<li><strong>How do we turn it off, and what happens to in-flight work when we do?</strong></li>
+</ol>
+<hr>
+<h2 id="6-evaluate">6. Evaluate<a class="anchor" href="#6-evaluate" aria-label="link to section">#</a></h2>
+<p><strong>This is the largest gap between the current framework and production readiness.</strong> The repo has 86 tests covering the <em>deterministic</em> machinery (policy enforcement, envelope validation, audit completeness — <code>tests/governance/</code>, <code>tests/unit/</code>) which is the right foundation, but production agents need evaluation of the <em>non-deterministic</em> behavior too.</p>
+<h3 id="61-the-evaluation-stack-build-in-this-order">6.1 The evaluation stack (build in this order)<a class="anchor" href="#61-the-evaluation-stack-build-in-this-order" aria-label="link to section">#</a></h3>
+<ol>
+<li><strong>Golden datasets per agent.</strong> 50–200 real (anonymized) task examples per agent with expected outcomes, curated by the owner team and refreshed quarterly. For the router: intent → correct target agent. For IT ops: incident text → correct severity + correct playbook. These are the agent&#39;s &quot;performance objectives.&quot;</li>
+<li><strong>Deterministic assertions first.</strong> Did it call an allowed tool? Did output parse against schema? Did it escalate when the scenario required it? Did it refuse out-of-scope requests? These are cheap, objective, and cover the compliance-critical behaviors. Extend the existing vitest suites — the simulation harness (<code>scripts/simulate-workflow.ts</code>) is the natural place to replay golden scenarios.</li>
+<li><strong>LLM-as-judge for quality dimensions</strong> (accuracy, groundedness in retrieved data, tone) — useful but never the <em>only</em> gate for a regulated decision; judges are themselves models and drift. Calibrate the judge against a sample of human ratings quarterly.</li>
+<li><strong>Human evaluation on samples.</strong> In L0/L1 phases, humans grade a statistically meaningful sample weekly; this doubles as the evidence file for autonomy promotion.</li>
+<li><strong>Adversarial evaluation.</strong> A standing red-team suite: injection attempts, out-of-scope requests, PII-extraction attempts, Sharia-noncompliant product requests. The agent must <em>fail safely</em> on all of them, and this suite runs on every change.</li>
+</ol>
+<h3 id="62-when-evaluations-run">6.2 When evaluations run<a class="anchor" href="#62-when-evaluations-run" aria-label="link to section">#</a></h3>
+<ul>
+<li><strong>Pre-merge (CI):</strong> full deterministic suite + golden dataset regression on every change to prompts, policies, tools, or model version. A prompt edit is a code change; it does not ship without passing evals.</li>
+<li><strong>Pre-promotion:</strong> independent validation runs the full stack, including adversarial, before any autonomy-level increase.</li>
+<li><strong>Continuously in production:</strong> sample live traffic (with consent/policy cover) into the eval pipeline; monitor for drift in escalation rate, tool-error rate, override rate, and judge scores. Model providers update models; your evals are how you notice.</li>
+</ul>
+<h3 id="63-kpis-per-agent-the-performance-review">6.3 KPIs per agent (the &quot;performance review&quot;)<a class="anchor" href="#63-kpis-per-agent-the-performance-review" aria-label="link to section">#</a></h3>
+<p>Task success rate, escalation rate, human-override rate (approvals modified/rejected), guardrail-violation rate, latency, cost per task, and — most important for the &quot;agents as employees&quot; narrative — <em>cycle-time and quality deltas vs. the pre-agent baseline</em>. Report to the governance committee monthly.</p>
+<hr>
+<h2 id="7-guardrails">7. Guardrails<a class="anchor" href="#7-guardrails" aria-label="link to section">#</a></h2>
+<p>Guardrails are the runtime enforcement layer that runs on <strong>every</strong> input and output, independent of what the model wants to do (<code>src/core/guardrails.ts</code>).</p>
+<h3 id="71-the-four-guardrail-surfaces">7.1 The four guardrail surfaces<a class="anchor" href="#71-the-four-guardrail-surfaces" aria-label="link to section">#</a></h3>
+<ol>
+<li><strong>Input guardrails</strong> (before the LLM sees anything): injection-pattern blocking, topic/scope filters, input-size limits, classification tagging.</li>
+<li><strong>Output guardrails</strong> (before anything leaves): PII/secret detection and masking, toxicity, claims-without-citation on data-backed answers, schema validation.</li>
+<li><strong>Tool-call guardrails</strong> (before execution): the policy engine — allowlist, classification ceiling, operation-type rules, autonomy check. This is where guardrails and governance meet; it&#39;s the strongest surface because it gates <em>actions</em>, not just words.</li>
+<li><strong>Behavioral limits:</strong> max turns per task, max tool calls per task, token/cost budget per session, session TTL (<code>context_policy</code> in every policy). A runaway loop hits a hard wall, not a soft prompt suggestion.</li>
+</ol>
+<h3 id="72-severity-model">7.2 Severity model<a class="anchor" href="#72-severity-model" aria-label="link to section">#</a></h3>
+<p><code>BLOCK</code> / <code>WARN</code> / <code>INFO</code> (as implemented): BLOCK stops the action and audits; WARN proceeds and audits; INFO audits silently. Tuning guidance: start strict (over-block), then relax based on false-positive review — the reverse direction (start loose, tighten after an incident) is how banks end up in the news.</p>
+<h3 id="73-what-to-add-before-production">7.3 What to add before production<a class="anchor" href="#73-what-to-add-before-production" aria-label="link to section">#</a></h3>
+<ul>
+<li>Replace regex-only PII detection with a proper detector (e.g., Presidio or a cloud DLP API) — regexes miss Arabic-script names, QIDs in prose, and IBAN variants.</li>
+<li>Prompt-injection classifiers (model-based) alongside the pattern list.</li>
+<li>Guardrail decisions in the audit log with full context so false positives are reviewable (partially present — ensure every BLOCK writes an audit event).</li>
+</ul>
+<hr>
+<h2 id="8-observe">8. Observe<a class="anchor" href="#8-observe" aria-label="link to section">#</a></h2>
+<p>Rule of thumb from regulated ML: <strong>if you can&#39;t reconstruct it, you didn&#39;t govern it.</strong> Two distinct systems, both present in skeleton form:</p>
+<h3 id="81-audit-trail-compliance-record">8.1 Audit trail (compliance record)<a class="anchor" href="#81-audit-trail-compliance-record" aria-label="link to section">#</a></h3>
+<p><code>src/core/audit-logger.ts</code> — every tool invocation, escalation, approval, guardrail violation, and policy decision becomes an immutable audit event tied to <code>traceId</code>/<code>correlationId</code>. Production requirements:</p>
+<ul>
+<li><strong>Append-only, tamper-evident storage</strong> (WORM storage / ledger table), retained per QCB record-keeping requirements (align with the bank&#39;s existing 10-year document retention).</li>
+<li>Must capture: who (user + agent identity), what (action + full input/output payload references), when, under which policy <strong>version</strong>, with which model <strong>version</strong>, and which human approved.</li>
+<li>Queryable by case: &quot;show me everything that happened for correlation X&quot; — <code>src/api/routes/audit.ts</code> is the start of this; extend into the compliance team&#39;s tooling.</li>
+</ul>
+<h3 id="82-operational-telemetry">8.2 Operational telemetry<a class="anchor" href="#82-operational-telemetry" aria-label="link to section">#</a></h3>
+<p><code>src/core/observability.ts</code> — OpenTelemetry traces and metrics on every agent action, span-per-tool-call, exportable to Azure Monitor / Datadog / Jaeger. Production additions:</p>
+<ul>
+<li><strong>Dashboards per agent</strong>: request volume, latency percentiles, error rates, token spend, escalation and override rates.</li>
+<li><strong>Alerting on behavioral anomalies</strong>, not just errors: sudden spike in guardrail BLOCKs (attack or regression), spike in escalations (scope drift), drop in task success, cost anomaly (loop). Route to the owning team like any production service — agents are on-call-able systems.</li>
+<li><strong>LLM-specific traces</strong>: record prompt/completion (with PII masking) per span so an engineer can replay exactly what the model saw. This is also your eval-data mining source.</li>
+</ul>
+<h3 id="83-the-reconstruction-test">8.3 The reconstruction test<a class="anchor" href="#83-the-reconstruction-test" aria-label="link to section">#</a></h3>
+<p>Quarterly drill: pick a random production task and require the team to produce, from logs alone: the user request, every agent hop, every tool call with inputs/outputs, every policy decision, the model + prompt + policy versions involved, and the human approvals. If reconstruction takes more than an hour, observability has a gap. This drill is also exactly what a regulator&#39;s on-site inspection looks like.</p>
+<hr>
+<h2 id="9-version-and-change-management">9. Version and Change Management<a class="anchor" href="#9-version-and-change-management" aria-label="link to section">#</a></h2>
+<p>An agent&#39;s behavior is the product of <strong>five independently-versioned artifacts</strong> — a change to any one is a change to the agent:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Artifact</th>
+<th>Versioning mechanism</th>
+<th>Current state</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Policy (scope, tools, autonomy)</td>
+<td>Semver in YAML (<code>version: &quot;1.0.0&quot;</code>, schema-enforced) + git history</td>
+<td>✅ implemented</td>
+</tr>
+<tr>
+<td>System prompt</td>
+<td>Lives inside the policy file → same versioning</td>
+<td>✅ implemented</td>
+</tr>
+<tr>
+<td>Tools</td>
+<td>Manifest entries with versions; contract tests per tool</td>
+<td>partial (<code>tool-manifest.ts</code>)</td>
+</tr>
+<tr>
+<td>Model</td>
+<td>Pinned model IDs in the LLM router — never &quot;latest&quot; in production</td>
+<td>⚠️ pin explicitly per agent</td>
+</tr>
+<tr>
+<td>Code (runtime, guardrails, governance)</td>
+<td>Normal SDLC: git, CI, releases</td>
+<td>✅ implemented</td>
+</tr>
+</tbody></table>
+</div><h3 id="91-change-control-rules">9.1 Change control rules<a class="anchor" href="#91-change-control-rules" aria-label="link to section">#</a></h3>
+<ul>
+<li><code>policies/</code> on a protected branch: changes require review by the owner team <strong>plus</strong> (for autonomy or tool-list changes) governance sign-off. The git log then doubles as the regulator-facing change record.</li>
+<li><strong>Model upgrades are treated like vendor system upgrades:</strong> run the full eval suite (§6) against the new model version in shadow, compare KPIs, get sign-off, then cut over with rollback ready. Never auto-upgrade an agent that holds L2+ authority.</li>
+<li>Every audit event records the policy version + model ID in force at the time (add these fields to the audit event if not present) — otherwise historical decisions can&#39;t be explained after an upgrade.</li>
+<li><strong>Rollback is a first-class operation:</strong> previous policy version + previous model pin, deployable in minutes. Practice it.</li>
+</ul>
+<h3 id="92-kill-switch">9.2 Kill switch<a class="anchor" href="#92-kill-switch" aria-label="link to section">#</a></h3>
+<p>Three levels, all pre-built and drilled:</p>
+<ol>
+<li><strong>Per-agent disable</strong> — deregister from router; in-flight tasks drain to humans (admin route exists: <code>src/api/routes/admin.ts</code>).</li>
+<li><strong>Autonomy downgrade</strong> — drop any agent to L1/L0 instantly without disabling it (config flag, no deploy).</li>
+<li><strong>Global stop</strong> — all agents to L0, message bus paused. This is the button the governance committee owns.</li>
+</ol>
+<hr>
+<h2 id="10-the-maturity-roadmap-how-to-actually-roll-this-out">10. The Maturity Roadmap (how to actually roll this out)<a class="anchor" href="#10-the-maturity-roadmap-how-to-actually-roll-this-out" aria-label="link to section">#</a></h2>
+<p><strong>Phase 0 — Foundations (done in this repo):</strong> governance engine, envelopes, audit, guardrails, two internal agents (IT ops, PMO) against mock tools.</p>
+<p><strong>Phase 1 — Shadow (L0), internal domains, ~3 months:</strong> connect real read-only data sources (Azure Monitor, ECM, Power BI) with per-agent identities (§3.1); agents produce outputs humans compare against their own work; build golden datasets from the comparisons; stand up dashboards. <em>Success gate:</em> task success ≥ target on golden set; zero guardrail-BLOCK bypasses; reconstruction drill passes.</p>
+<p><strong>Phase 2 — Assisted (L1/L2), internal operations:</strong> agents answer and propose; humans approve mutations. IT ticket triage, PMO status reporting, internal knowledge queries. Track override rates as the promotion evidence base. This is where the &quot;digital consultant&quot; value shows up first and where the organization learns to <em>manage</em> agents.</p>
+<p><strong>Phase 3 — Supervised autonomy (L3) for low-risk categories + first customer-adjacent use:</strong> promote specific task categories with sustained &gt;95% unmodified-approval rates; introduce customer-facing assistance (never customer-facing <em>decisions</em>) with disclosure. Credit-assessment support (<code>policies/credit-assessment.yaml</code>) stays decision-support only: the agent assembles, checks Sharia/QCB constraints (<code>src/tools/compliance/</code>), and drafts — a human credit officer decides. In most regimes (and under the EU AI Act benchmark) automated credit decisions are the highest-risk category; keep humans as the deciders indefinitely unless the governance committee and regulator engagement say otherwise.</p>
+<p>Each promotion = evidence pack (eval results, KPI history, incident record) → independent validation → governance committee sign-off. Autonomy is earned per task category, not granted per agent.</p>
+<hr>
+<h2 id="11-production-readiness-checklist-condensed">11. Production-Readiness Checklist (condensed)<a class="anchor" href="#11-production-readiness-checklist-condensed" aria-label="link to section">#</a></h2>
+<p><strong>Before any real data:</strong> per-agent workload identities · secrets in vault · DLP-grade PII detection · data-residency routing enforced · pen test incl. injection red-team.</p>
+<p><strong>Before L2:</strong> approval UX with full context · approval audit events · eval suite in CI with golden datasets · dashboards + anomaly alerts · kill switch drilled · policy branch protection + governance sign-off flow.</p>
+<p><strong>Before L3:</strong> independent validation report · sustained override-rate evidence · adversarial suite green across 2+ model versions · reconstruction drill under 1 hour · board-level AI governance framework approved (QCB expectation).</p>
+<hr>
+<p><em>Maintained alongside the framework. Changes to this playbook that alter governance requirements follow the same review path as changes to <code>policies/</code>.</em></p>
+
+</main>
+</div>
+</body>
+</html>
