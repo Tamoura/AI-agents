@@ -19,6 +19,18 @@ Companion to `PRODUCTION-PLAYBOOK.md` (the *what and why*); this document is the
 | **L4** | Regulated-AI Specialist | Security, risk, compliance + senior engineers | 4–6 weeks | Threat model + red-team report, or governance templates adopted |
 | **L5** | Hero / Program Lead | Tech leads, chief architect | ongoing | Capstone: one real process through the full lifecycle |
 
+```mermaid
+flowchart LR
+    L0["L0 Literate — everyone"] --> L1["L1 Builder"]
+    L1 --> L2["L2 Agent Engineer"]
+    L2 --> L3["L3 Production Engineer"]
+    L2 --> L4["L4 Regulated-AI Specialist"]
+    L3 --> L5["L5 Hero / Program Lead"]
+    L4 --> L5
+    L0 -.->|"exec cut, half-day"| EX["Leadership briefing track"]
+    L0 -.->|"survey track"| GOV["Risk / compliance → L4 governance modules"]
+```
+
 ## 2. Role Tracks
 
 ● = full depth (all modules + labs) ○ = survey depth (read modules, attend demos, skip deep labs) — = not required
@@ -91,6 +103,22 @@ Audience: everyone. Duration: 1–2 weeks part-time (~8–12 hours). The #1 fail
 - The autonomy ladder (Playbook §4.2): L0 shadow → L1 notify → L2 approve (maker-checker) → L3 autonomous-with-audit. Autonomy is granted per task category, earned with evidence, and always revocable.
 - The one-line risk statement everyone must be able to repeat: *a chatbot that hallucinates embarrasses you; an agent that hallucinates does things.*
 - Agents as digital employees (Playbook §1): job description = policy file; badge = tool allowlist; manager = owner team; timesheet = audit log.
+
+The agent loop, and where the keys actually live:
+
+```mermaid
+flowchart LR
+    G["Goal + context"] --> M["LLM — reasons, requests actions"]
+    M -->|"requests tool call"| P["Policy check — allowlist, ceiling, autonomy"]
+    subgraph HARNESS["Deterministic harness — your code holds the keys"]
+        P -->|allowed| E["Execute tool"]
+        P -->|denied| D["Refuse / escalate to human"]
+        E --> A["Audit log"]
+        D --> A
+    end
+    A -->|"tool result"| M
+    M -->|"final answer"| U["User"]
+```
 
 **Resources:** Anthropic engineering blog "Building effective agents" (the single best short read in the field); Playbook §1, §4.2.
 
@@ -240,6 +268,19 @@ Audience: developers, solution architects. Duration: 4–6 weeks (~35–45 hours
 - Single agent + many tools vs. multiple agents: split only along real boundaries — different data clearances, different owner teams, different autonomy ceilings, genuinely different domains. "It feels cleaner" is not a boundary.
 - The router pattern as a bank's front door: intent classification with confidence thresholds; low-confidence → human, never guess (`src/agents/router/intent-classifier.ts`).
 
+The pattern ladder — autonomy, cost, and audit difficulty all rise left to right; start as far left as the task allows:
+
+```mermaid
+flowchart LR
+    A["Prompt chaining — fixed steps"] --> B["Routing — classify, then dispatch"]
+    B --> C["Parallelization — sectioning / voting"]
+    C --> D["Orchestrator–workers — dynamic decomposition"]
+    D --> E["Evaluator–optimizer — generate, critique, retry"]
+    E --> F["Full agent loop — model-directed control flow"]
+    style A fill:#e8f0e8,stroke:#4a7a4a
+    style F fill:#f0e0e0,stroke:#8a4a4a
+```
+
 **Resources:** "Building effective agents" (third read — now study the pattern diagrams); this repo's router implementation.
 
 **Lab:** for five QDB scenarios (loan-document completeness check, monthly PMO status compilation, IT incident triage, Sharia product screening, ad-hoc analytics Q&A), choose a pattern each, and write a one-paragraph justification. Reviewed in cohort session — disagreement is the point.
@@ -259,6 +300,17 @@ Audience: developers, solution architects. Duration: 4–6 weeks (~35–45 hours
 **Resources:** `src/core/graph-engine.ts` line-by-line; one framework from the Appendix E shortlist (Claude Agent SDK, LangGraph 1.0, OpenAI Agents SDK, Google ADK, or Microsoft Agent Framework), learned deeply — concepts transfer, syntax doesn't matter.
 
 **Lab:** build a three-node graph in the framework: `classify-incident` → (conditional) `fetch-runbook` → `draft-ticket`, with a checkpoint before `draft-ticket` and proof that killing the process mid-run and restarting resumes correctly.
+
+```mermaid
+flowchart LR
+    S(["Start"]) --> N1["classify-incident"]
+    N1 -->|"P1 / P2"| N2["fetch-runbook"]
+    N1 -->|"P3 and below"| CP[("checkpoint — state persisted")]
+    N2 --> CP
+    CP --> N3["draft-ticket"]
+    N3 --> E(["End"])
+    CP -.->|"crash / interrupt → resume from here"| CP
+```
 
 ### Module 2.3 — State, Memory, and Context Management (≈4h)
 
@@ -283,6 +335,20 @@ Audience: developers, solution architects. Duration: 4–6 weeks (~35–45 hours
 - The posture for a bank, unchanged by the standards wave: adopt MCP/A2A at the edges (external tools; agents crossing org or vendor boundaries), keep the governance envelope as the internal standard — open protocols carry the message, your envelope carries the authority context. Signed Agent Cards strengthen, but do not replace, per-agent workload identity (Module 4.2).
 - Message bus operational concerns: delivery semantics, dead-letter queues, replay for audit.
 
+The 2026 protocol topology — MCP vertical, A2A horizontal, your envelope inside:
+
+```mermaid
+flowchart TB
+    subgraph QDB["Inside QDB — governance envelope on every hop"]
+        R["Router agent"] <-->|"envelope over message bus"| IT["IT ops agent"]
+        R <-->|"envelope"| PMO["PMO agent"]
+    end
+    IT -->|"MCP — vertical: agent to tool"| T1[("Azure Monitor")]
+    PMO -->|"MCP"| T2[("Power BI")]
+    PMO -->|"MCP"| T3[("ECM")]
+    R <-->|"A2A v1.0 — horizontal: agent to agent, signed Agent Cards"| EXT["External / partner agent"]
+```
+
 **Resources:** modelcontextprotocol.io spec + server quickstart; this repo's envelope tests (`tests/unit/message-envelope.test.ts`).
 
 **Lab:**
@@ -297,6 +363,26 @@ Audience: developers, solution architects. Duration: 4–6 weeks (~35–45 hours
 - Designing for the approver: approvals must be *decidable in under two minutes* or fatigue defeats the control. What context to surface, what to pre-check automatically.
 - Override-rate telemetry as the promotion evidence base (Playbook §4.2): >95% unmodified approvals sustained = the data case for L3, decided by governance, not engineering.
 - Rejection flows: a rejected action must inform the agent (typed result), the user (honest message), and the audit log — and must not be silently retried.
+
+The approval round-trip you'll build in the lab:
+
+```mermaid
+sequenceDiagram
+    participant AG as Agent
+    participant ES as Escalation engine
+    participant Q as Approval queue
+    participant M as Named approver
+    participant AU as Audit log
+
+    AG->>ES: proposed MUTATE action
+    ES->>ES: policy + classification + autonomy check
+    ES->>Q: approval request — envelope, reasoning, what-happens-if-approved
+    Q->>M: notify named role
+    M-->>Q: approve or reject, with rationale
+    Q->>AU: decision recorded — approver, timestamp, rationale
+    Q-->>AG: typed outcome
+    AG->>AU: execution result, or safe stop on rejection
+```
 
 **Lab:** build the approval round-trip for the procurement scenario (below): agent proposes PO amendment → approval request created with full context → simulate approve and reject paths → assert both outcomes in the audit log and in the agent's subsequent behavior.
 
@@ -346,6 +432,17 @@ Audience: senior devs, DevOps/SRE, QA leads. Duration: 4–6 weeks (~35–45 hou
 - Metrics that matter per agent: task success rate, escalation precision/recall (escalating too little is a compliance failure, too much is fatigue), tool-error rate, grounding rate, refusal correctness.
 - Statistical honesty: run counts, variance, "pass rate ≥ X% with N ≥ 30" not "it passed."
 
+The assertion hierarchy — spend your eval budget top-down:
+
+```mermaid
+flowchart TB
+    T1["1 — Deterministic assertions: right tool called, schema parses, escalated when required, refused out-of-scope. Cheap, objective, never lie. Cover compliance-critical behavior here."]
+    T2["2 — Reference-based: accuracy / F1 against labeled truth"]
+    T3["3 — LLM-as-judge: groundedness, tone, completeness. Useful; drifts; calibrate vs human ratings quarterly; never the sole regulated gate"]
+    T4["4 — Human evaluation: sampled grading; doubles as autonomy-promotion evidence"]
+    T1 --> T2 --> T3 --> T4
+```
+
 **Resources:** Anthropic docs evaluation guidance; promptfoo (or Braintrust/LangSmith equivalent) hands-on — learn ONE eval tool; this repo's `scripts/simulate-workflow.ts` as the replay substrate.
 
 **Lab (flagship, part 1):** create `evals/` with a 30-case golden dataset for the router (utterance → expected target agent + expected escalation flag + expected refusal for out-of-scope cases). Runner executes all cases N=3, reports per-case and aggregate pass rates, exits non-zero below threshold. Wire as `npm run eval`.
@@ -368,6 +465,14 @@ Audience: senior devs, DevOps/SRE, QA leads. Duration: 4–6 weeks (~35–45 hou
 - Config-not-code rollout levers: autonomy downgrade, model re-pin, policy rollback — all deployable in minutes without a code release; rollback drilled, not just documented.
 - Model upgrades as vendor system upgrades: full eval suite on the new pin in shadow → KPI comparison → sign-off → cutover with rollback armed. Never auto-upgrade an agent holding L2+ authority.
 - Secrets and supply chain: vault-backed keys, per-environment pins, dependency and model-provenance scanning; protected branch on `policies/` with required reviews (the git log as regulator-facing change record).
+
+```mermaid
+flowchart LR
+    DEV["dev"] -->|"unit + governance tests"| STG["staging"]
+    STG -->|"golden + adversarial eval suites — required checks"| SHD["shadow — L0 on live traffic, zero effects"]
+    SHD -->|"KPI comparison + sign-off"| PRD["prod"]
+    PRD -.->|"rollback = previous policy version + model pin, minutes, no code deploy"| SHD
+```
 
 **Lab:** build the promotion pipeline skeleton: a GitHub Actions workflow that on any change to `policies/**`, `src/**`, or `evals/**` runs unit + governance tests + both eval suites, and on main-merge produces a versioned container image (Dockerfile exists) tagged with policy versions included. Document the rollback procedure and execute it once against the docker-compose stack.
 
@@ -432,6 +537,24 @@ Audience: security engineers and risk/compliance (deep on their own track, surve
 - **OWASP Top 10 for Agentic Applications (2026)** — published December 2025 by the OWASP GenAI Security Project (ASI01–ASI10), the agentic companion to the LLM Top 10. Its risk domains are this module's syllabus: planning/goal manipulation, tool misuse, agent identity, supply chain, code execution, memory poisoning, inter-agent communication, cascading failures, human–agent trust exploitation, and rogue agents. Lab discipline: map each ASI item to the framework control that addresses it — regulators increasingly accept this mapping as technical evidence (it aligns with EU AI Act Art. 9 risk management, Art. 14 human oversight, Art. 15 robustness).
 - Agent-specific attack chains: injection → tool abuse → exfiltration; memory poisoning (persistent injection via stored memory); cross-agent laundering (using a high-clearance agent as a confused deputy via inter-agent messages); approval-fatigue exploitation (flooding L2 queues to slip one bad action through).
 - The defense doctrine: injection is not preventable, it is *containable* — bounded blast radius (allowlist × classification ceiling × autonomy ceiling) is the control that holds when all filters fail.
+
+What containment looks like when the filters have already failed:
+
+```mermaid
+flowchart LR
+    I["Injected instruction — hidden in a retrieved document"] --> H["Agent hijacked — filters missed it"]
+    H --> C1{"Tool on the agent's allowlist?"}
+    C1 -- no --> B1["Blocked + audited"]
+    C1 -- yes --> C2{"Data within classification ceiling?"}
+    C2 -- no --> B2["Blocked + audited"]
+    C2 -- yes --> C3{"MUTATE on sensitive data?"}
+    C3 -- yes --> B3["Human approval intercepts — anomalous request visible"]
+    C3 -- no --> BR["Worst case: an in-scope READ — bounded blast radius, fully audited"]
+    style B1 fill:#e8f0e8,stroke:#4a7a4a
+    style B2 fill:#e8f0e8,stroke:#4a7a4a
+    style B3 fill:#e8f0e8,stroke:#4a7a4a
+    style BR fill:#f5eede,stroke:#8a6d1f
+```
 
 **Resources:** OWASP Top 10 for LLM Applications + OWASP Top 10 for Agentic Applications 2026 (both current versions, full text — genai.owasp.org); Lakera Gandalf or equivalent injection playground for intuition; Anthropic prompt-injection mitigation guidance.
 
@@ -544,6 +667,18 @@ Take **one real QDB process** end-to-end through the entire lifecycle. All seven
 5. **Governance pack:** committee approval, named owner team, autonomy plan with promotion criteria.
 6. **Shadow deployment (L0):** ≥4 weeks on live traffic, dashboards live, weekly human-comparison sampling.
 7. **Promotion decision:** the evidence pack (Module 4.6 template) argued before the committee — promotion to L1/L2, *or a documented no-go, which is an equally valid capstone outcome.*
+
+```mermaid
+flowchart LR
+    S1["1 Business case + baseline"] --> S2["2 Architecture decision record"]
+    S2 --> S3["3 Build + full eval suite in CI"]
+    S3 --> S4["4 Threat model + red team"]
+    S4 --> S5["5 Governance pack + committee approval"]
+    S5 --> S6["6 Shadow L0, 4+ weeks, dashboards live"]
+    S6 --> S7{"7 Promotion decision"}
+    S7 -->|"go"| GO["L1/L2 in production"]
+    S7 -->|"documented no-go"| NG["Equally valid capstone outcome"]
+```
 
 **You are a "hero" when you have shipped one agent through all seven steps and taught at least one cohort behind you.** The program scales through people who've done it, not through documents — including this one.
 

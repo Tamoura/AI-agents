@@ -4,12 +4,61 @@
  * Output: docs/<name>.html — single file, no external assets, light/dark aware, printable.
  */
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { marked } from "marked";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+// ─── Mermaid → inline SVG (cached by content hash) ─────────────────────────
+
+const CACHE = join(ROOT, "node_modules", ".cache", "mermaid-docs");
+mkdirSync(CACHE, { recursive: true });
+
+function puppeteerConfigPath() {
+  const cfg = join(CACHE, "puppeteer.json");
+  const candidates = [
+    process.env.PUPPETEER_EXECUTABLE_PATH,
+    "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
+  ].filter(Boolean);
+  const executablePath = candidates.find((p) => existsSync(p));
+  const config = executablePath
+    ? { executablePath, args: ["--no-sandbox", "--disable-gpu"] }
+    : { args: ["--no-sandbox", "--disable-gpu"] };
+  writeFileSync(cfg, JSON.stringify(config));
+  return cfg;
+}
+
+const PPCONFIG = puppeteerConfigPath();
+
+function renderMermaid(code) {
+  const hash = createHash("sha1").update(code).digest("hex").slice(0, 16);
+  const svgPath = join(CACHE, `${hash}.svg`);
+  if (!existsSync(svgPath)) {
+    const mmdPath = join(CACHE, `${hash}.mmd`);
+    writeFileSync(mmdPath, code);
+    execFileSync(
+      "npx",
+      ["mmdc", "-i", mmdPath, "-o", svgPath, "-b", "transparent", "-I", `d${hash}`, "-p", PPCONFIG],
+      { cwd: ROOT, stdio: ["ignore", "ignore", "inherit"] }
+    );
+  }
+  return readFileSync(svgPath, "utf8");
+}
+
+/** Replace ```mermaid fences with placeholders; return [mdWithoutMermaid, svgs[]]. */
+function extractMermaid(md) {
+  const svgs = [];
+  const out = md.replace(/```mermaid\r?\n([\s\S]*?)```/g, (_, code) => {
+    const i = svgs.length;
+    svgs.push(renderMermaid(code.trim()));
+    return `\n<!--MMD:${i}-->\n`;
+  });
+  return [out, svgs];
+}
 
 const DOCS = [
   {
@@ -44,7 +93,8 @@ function slugify(text) {
 
 function render(doc) {
   slugCounts.clear();
-  const md = readFileSync(join(ROOT, doc.src), "utf8");
+  const raw = readFileSync(join(ROOT, doc.src), "utf8");
+  const [md, svgs] = extractMermaid(raw);
   const headings = [];
 
   const renderer = new marked.Renderer();
@@ -61,7 +111,8 @@ function render(doc) {
     return `<div class="table-wrap">${html}</div>`;
   };
 
-  const body = marked.parse(md, { renderer, gfm: true });
+  let body = marked.parse(md, { renderer, gfm: true });
+  body = body.replace(/<!--MMD:(\d+)-->/g, (_, i) => `<figure class="diagram">${svgs[Number(i)]}</figure>`);
 
   const toc = headings
     .filter((h) => h.depth <= 2)
@@ -146,6 +197,11 @@ th, td { padding: .55rem .8rem; border-bottom: 1px solid var(--line); vertical-a
 tbody tr:last-child td { border-bottom: none; }
 tbody tr:hover { background: color-mix(in srgb, var(--accent-soft) 40%, transparent); }
 hr { border: none; border-top: 1px solid var(--line); margin: 3rem 0; }
+figure.diagram {
+  margin: 1.5rem 0; padding: 1.25rem; background: #fdfdfa;
+  border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; box-shadow: var(--shadow);
+}
+figure.diagram svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
 em { color: inherit; }
 ::selection { background: var(--accent-soft); }
 @media (max-width: 900px) {

@@ -42,26 +42,22 @@ The CEO's framing — "agents as employees/consultants" — is exactly the right
 
 ### 2.2 The layers
 
-```
-┌─────────────────────────────────────────────────────────┐
-│ Channels: chat UI, Teams, email, API   (src/api/)       │
-├─────────────────────────────────────────────────────────┤
-│ Guardrails (input)                     (core/guardrails)│
-├─────────────────────────────────────────────────────────┤
-│ Router agent → specialist agents       (src/agents/)    │
-│   each agent = policy + system prompt + tool allowlist  │
-├─────────────────────────────────────────────────────────┤
-│ Governance: policy engine, escalation, data classifier  │
-│                                        (src/governance/)│
-├─────────────────────────────────────────────────────────┤
-│ Tool registry + manifest               (core/tool-*)    │
-│   data tools (read) / action tools (mutate) /           │
-│   compliance tools                     (src/tools/)     │
-├─────────────────────────────────────────────────────────┤
-│ Guardrails (output) → audit log → observability         │
-├─────────────────────────────────────────────────────────┤
-│ LLM router (Claude / GPT / local)      (core/llm-router)│
-└─────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    CH["Channels: chat UI, Teams, email, API — src/api/"]
+    GI["Input guardrails — core/guardrails"]
+    RT["Router agent — intent classification"]
+    SA["Specialist agents — each = policy + system prompt + tool allowlist — src/agents/"]
+    GOV["Governance: policy engine · escalation · data classifier — src/governance/"]
+    TR["Tool registry + manifest — core/tool-*"]
+    TOOLS["Tools: data READ · actions MUTATE · compliance — src/tools/"]
+    GO["Output guardrails → audit log → observability"]
+    LLM["LLM router: Claude / GPT / local — core/llm-router"]
+
+    CH --> GI --> RT --> SA
+    SA --> GOV --> TR --> TOOLS --> GO
+    SA <--> LLM
+    GO --> CH
 ```
 
 Every hop is mediated: nothing goes from model to tool, or agent to agent, without passing the policy engine and emitting an audit record.
@@ -123,6 +119,34 @@ All inter-agent traffic uses one immutable, schema-validated envelope (`src/core
 - `dataClassification`, `requiresApproval`, `autonomyLevel` — governance metadata travels **with** the message, so a downstream agent cannot silently launder restricted data or escalate autonomy.
 - `ttlSeconds` — messages expire; no stale instructions executing hours later.
 
+A full request, end to end — every governance touchpoint and audit event on one picture:
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant R as Router agent
+    participant A as Specialist agent
+    participant P as Policy engine
+    participant T as Tool backend
+    participant H as Human approver
+    participant L as Audit log
+
+    U->>R: request with sessionId + traceId
+    R->>L: audit: intent classified
+    R->>A: envelope with correlationId, classification, autonomy
+    A->>P: may I call this READ tool?
+    P-->>A: allowed within ceiling
+    A->>T: tool call
+    T-->>A: result
+    A->>L: audit: tool invocation
+    A->>P: may I execute this MUTATE action?
+    P-->>A: requires approval at L2
+    A->>H: approval request with full context
+    H-->>A: approved with rationale
+    A->>L: audit: approval decision
+    A-->>U: response with citations
+```
+
 Industry direction: MCP (Model Context Protocol) for agent→tool connectivity and A2A-style protocols for agent→agent. The envelope pattern here maps cleanly onto both — adopt MCP for tool integration as connectors mature (core banking, ECM, Power BI already have mock tool shapes in `src/tools/data/`), but keep the governance envelope as your internal standard: open protocols carry the message, your envelope carries the *authority context*.
 
 ### 4.2 Agent-to-human: the autonomy ladder
@@ -142,6 +166,24 @@ Rules that must stay hard-coded (they are, in `escalation.ts`):
 - Policy `overrides` can only *lower* autonomy for a condition, never raise it above the policy ceiling.
 - Approval requests go to **named roles** (`notify: ["it_manager", "cio"]`), with the full envelope and reasoning attached — an approver who can't see *why* is a rubber stamp, which an auditor will flag.
 - Approvals are logged as first-class audit events (approver, timestamp, decision, rationale).
+
+How every proposed action is decided, as enforced in `escalation.ts`:
+
+```mermaid
+flowchart TD
+    S["Agent proposes an action"] --> C1{"Data within the agent's classification ceiling?"}
+    C1 -- no --> BLK["Blocked + audited"]
+    C1 -- yes --> C2{"MUTATE on CONFIDENTIAL or RESTRICTED data?"}
+    C2 -- yes --> ESC["Human approval required — hard rule, policy cannot override"]
+    C2 -- no --> C3{"Policy escalation trigger fires?"}
+    C3 -- yes --> ESC
+    C3 -- no --> C4{"Autonomy level"}
+    C4 -- "L1" --> N["Execute + notify humans"]
+    C4 -- "L3" --> X["Execute + sampled after-the-fact review"]
+    ESC --> H{"Named approver decides"}
+    H -- approve --> XA["Execute + audit the approval"]
+    H -- reject --> RJ["Stopped — agent and user informed, decision audited"]
+```
 
 **Human-side design matters as much as agent-side:** approval fatigue is the failure mode. If a role receives hundreds of approvals daily, humans stop reading them. Track approval volume and override rate per role; if >95% of requests are approved without modification for a task category over a sustained period, that's the data-driven case for promoting that category to L3 — via change management (§9), not by editing a prompt.
 
@@ -294,6 +336,18 @@ Three levels, all pre-built and drilled:
 **Phase 2 — Assisted (L1/L2), internal operations:** agents answer and propose; humans approve mutations. IT ticket triage, PMO status reporting, internal knowledge queries. Track override rates as the promotion evidence base. This is where the "digital consultant" value shows up first and where the organization learns to *manage* agents.
 
 **Phase 3 — Supervised autonomy (L3) for low-risk categories + first customer-adjacent use:** promote specific task categories with sustained >95% unmodified-approval rates; introduce customer-facing assistance (never customer-facing *decisions*) with disclosure. Credit-assessment support (`policies/credit-assessment.yaml`) stays decision-support only: the agent assembles, checks Sharia/QCB constraints (`src/tools/compliance/`), and drafts — a human credit officer decides. In most regimes (and under the EU AI Act benchmark) automated credit decisions are the highest-risk category; keep humans as the deciders indefinitely unless the governance committee and regulator engagement say otherwise.
+
+```mermaid
+flowchart LR
+    P0["Phase 0 — Foundations: governance engine, envelopes, audit, mock tools (done)"]
+    P1["Phase 1 — Shadow L0: real read-only data, humans compare, golden datasets built"]
+    P2["Phase 2 — Assisted L1/L2: agents propose, humans approve mutations"]
+    P3["Phase 3 — Supervised autonomy L3 for earned task categories + customer-adjacent assist"]
+
+    P0 --> P1
+    P1 -->|"gate: golden-set success, zero bypasses, reconstruction drill passes"| P2
+    P2 -->|"gate: sustained >95% unmodified approvals per category"| P3
+```
 
 Each promotion = evidence pack (eval results, KPI history, incident record) → independent validation → governance committee sign-off. Autonomy is earned per task category, not granted per agent.
 
