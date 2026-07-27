@@ -227,12 +227,12 @@ Audience: developers, QA. Duration: 3–4 weeks (~25–35 hours). Prerequisite: 
 **Topics:**
 - The pipeline: ingest → chunk → embed → index → retrieve → augment prompt → cite. Where each step goes wrong (bad chunking dominates).
 - Chunking strategies for real documents (policies, contracts): structure-aware beats fixed-size; overlap; metadata (source, section, classification) carried with every chunk.
-- Embeddings and vector search in practice; hybrid (keyword + vector) as the default for banking terminology and Arabic/English mixed corpora.
+- Embeddings and vector search in practice; hybrid (keyword + vector) as the default for banking terminology and Arabic/English mixed corpora. Arabic specifics: morphology (alef/hamza variants, ta marbuta, diacritics) breaks naive BM25 — use Arabic-aware analyzers and normalization; dialectal and code-switched queries (Arabic + English technical terms) are the norm in real Gulf traffic, so retrieval evals need per-dialect slices, not just MSA.
 - **Citations as a control, not a feature:** every data-backed claim cites tool + record so a human can verify (Playbook §4.3). Uncited claims are how hallucinations enter official records.
 - Retrieval and data classification: the index inherits the classification of its most sensitive document unless you filter at query time by user/agent clearance — a security topic revisited at L4.
 - When RAG is the wrong tool: computations, live data (use a query tool), tiny corpora (put it in the prompt).
 
-**Resources:** Anthropic docs RAG guidance + contextual-retrieval writeup; any one vector store's quickstart (choose what IT can actually host).
+**Resources:** Anthropic docs RAG guidance + contextual-retrieval writeup; any one vector store's quickstart (choose what IT can actually host); h9-tec "AI Engineering Reference" (github.com/h9-tec/ai-system-design) RAG sections — carries the measured case for the full stack: contextual retrieval + hybrid search + reranking cuts retrieval failure from 5.7% to 1.9%.
 
 **Lab:** index this repo's `docs/` folder; build `ask-the-playbook`: answers must cite section numbers; questions with no grounded answer must say so rather than improvise. Test with 5 answerable + 3 unanswerable questions.
 
@@ -264,6 +264,7 @@ Audience: developers, solution architects. Duration: 4–6 weeks (~35–45 hours
 - The reasoning-loop taxonomy (the 2026 vocabulary — these names appear in every framework's docs): **ReAct** (think–act–observe loop, the default agent loop), **Plan-and-Execute** (decompose up front, then run steps — cheaper and more auditable than replanning every turn), **Reflexion** (self-critique and retry), **ReWOO** (plan once, execute without intermediate LLM calls), **Tree-of-Thoughts** (search over candidate plans — rarely worth its cost in production). Regulated default: Plan-and-Execute over free-running ReAct wherever the task allows, because the plan is reviewable *before* execution.
 - The 2026 architectural consensus: four separable layers — reasoning (the model), orchestration (control flow over a state graph), memory (its own storage tiers and failure modes), and tool integration (MCP). Memory and orchestration are first-class concerns now, not afterthoughts bolted to a chat loop — this framework's separation of `graph-engine` / `memory` / `state-store` / `tool-registry` reflects it.
 - **The prime directive: most "agent" problems are workflow problems.** Fixed step sequences are cheaper, testable, and auditable. Reach for model-directed control flow only when the path genuinely cannot be enumerated in advance.
+- The cost arithmetic behind the directive: single agents run roughly 4× the tokens of plain chat; multi-agent systems roughly 15×. Pay that only for genuinely parallelizable work — and climb the "architecture ladder" (single call → workflow → agent → multi-agent) one rung at a time, each rung justified by *evals showing the current rung failing*, never by enthusiasm.
 - Decision drivers for regulated contexts: auditability (can you enumerate the paths?), blast radius, latency/cost budgets, failure containment.
 - Single agent + many tools vs. multiple agents: split only along real boundaries — different data clearances, different owner teams, different autonomy ceilings, genuinely different domains. "It feels cleaner" is not a boundary.
 - The router pattern as a bank's front door: intent classification with confidence thresholds; low-confidence → human, never guess (`src/agents/router/intent-classifier.ts`).
@@ -391,10 +392,11 @@ sequenceDiagram
 **Topics:**
 - Tiering: fast/cheap models for classification and extraction, frontier models for reasoning and drafting; routing per *task*, not per agent (`src/core/llm-router.ts`).
 - Local models (Ollama) for residency-constrained inference: capability trade-offs, when they're good enough (classification, PII detection) vs. not (multi-step reasoning).
-- Cost engineering: token budgets per session (a guardrail — Playbook §7.1), prompt caching for stable system prompts, batch APIs for offline work; cost-per-task as a first-class KPI.
+- Cost engineering: token budgets per session (a guardrail — Playbook §7.1), prompt caching for stable system prompts (up to ~90% cost reduction on cache hits), batch APIs for offline work; cost-per-task as a first-class KPI.
+- Arabic token economics: Arabic frequently costs 1.5–3× more tokens than equivalent English on common tokenizers. Budget and load-test against QDB's real Arabic/English traffic mix — an English-only benchmark understates both cost and context consumption.
 - Pinning discipline preview (L3): explicit model IDs per agent per environment, never "latest."
 
-**Lab:** add a routing rule sending intent classification to a small model and agent reasoning to a frontier model; measure and report cost-per-simulated-task before and after.
+**Lab:** add a routing rule sending intent classification to a small model and agent reasoning to a frontier model; measure and report cost-per-simulated-task before and after, running both English and Arabic test utterances.
 
 ### Module 2.7 — Anti-Patterns Clinic (≈2h, cohort session)
 
@@ -443,7 +445,7 @@ flowchart TB
     T1 --> T2 --> T3 --> T4
 ```
 
-**Resources:** Anthropic docs evaluation guidance; promptfoo (or Braintrust/LangSmith equivalent) hands-on — learn ONE eval tool; this repo's `scripts/simulate-workflow.ts` as the replay substrate.
+**Resources:** Anthropic docs evaluation guidance; promptfoo (or Braintrust/LangSmith equivalent) hands-on — learn ONE eval tool; this repo's `scripts/simulate-workflow.ts` as the replay substrate; h9-tec "AI Engineering Reference" evaluation sections — independent confirmation of this module's philosophy (start with ~20 representative queries and hand inspection; four-layer grading; judge agents on end state *and* trajectory; every production incident becomes a regression case).
 
 **Lab (flagship, part 1):** create `evals/` with a 30-case golden dataset for the router (utterance → expected target agent + expected escalation flag + expected refusal for out-of-scope cases). Runner executes all cases N=3, reports per-case and aggregate pass rates, exits non-zero below threshold. Wire as `npm run eval`.
 
@@ -537,6 +539,7 @@ Audience: security engineers and risk/compliance (deep on their own track, surve
 - **OWASP Top 10 for Agentic Applications (2026)** — published December 2025 by the OWASP GenAI Security Project (ASI01–ASI10), the agentic companion to the LLM Top 10. Its risk domains are this module's syllabus: planning/goal manipulation, tool misuse, agent identity, supply chain, code execution, memory poisoning, inter-agent communication, cascading failures, human–agent trust exploitation, and rogue agents. Lab discipline: map each ASI item to the framework control that addresses it — regulators increasingly accept this mapping as technical evidence (it aligns with EU AI Act Art. 9 risk management, Art. 14 human oversight, Art. 15 robustness).
 - Agent-specific attack chains: injection → tool abuse → exfiltration; memory poisoning (persistent injection via stored memory); cross-agent laundering (using a high-clearance agent as a confused deputy via inter-agent messages); approval-fatigue exploitation (flooding L2 queues to slip one bad action through).
 - The defense doctrine: injection is not preventable, it is *containable* — bounded blast radius (allowlist × classification ceiling × autonomy ceiling) is the control that holds when all filters fail.
+- **The lethal-trifecta design test** (Willison): an agent that combines (1) access to private data, (2) exposure to untrusted content, and (3) the ability to communicate externally is structurally exploitable — no filter fixes it; the architecture must break at least one leg. Apply it in every agent design review: name the missing leg, and point to the code (denied tool, classification ceiling) that guarantees it stays missing.
 
 What containment looks like when the filters have already failed:
 
@@ -726,6 +729,7 @@ Targets: every agent owner team contains ≥1 person at 2+ in evals, HITL, and o
 - **Protocols & frameworks:** modelcontextprotocol.io (spec + quickstarts) · A2A v1.0 spec (Linux Foundation) · one orchestration framework's docs, learned deeply (from the Appendix E shortlist) · one eval tool, learned deeply (promptfoo or equivalent).
 - **Regional (compliance team to maintain):** QCB circulars and AI guideline · Qatar PDPPL Law 13/2016 summary · NCSA/NIA policy documents.
 - **General:** Google SRE book (SLO + incident chapters) · DeepLearning.AI short courses for L0–L1 ramp (any current prompt-engineering + systems-building pair) · 3Blue1Brown transformer videos for the visually inclined.
+- **Field reference:** h9-tec "AI Engineering Reference: System Design and Real-World Practices" (github.com/h9-tec/ai-system-design) — a production-grounded companion to this curriculum, strongest exactly where it complements us: retrieval engineering with measured numbers, eval methodology, cost economics, and Arabic/Gulf-specific engineering (token multipliers, dialect eval slices, morphology-aware retrieval). Thin on regulated governance — that is what the Playbook is for. Its failure-handling table and production-readiness checklist are worth mirroring when building the L3 labs.
 - **This repo:** `PRODUCTION-PLAYBOOK.md` · the codebase itself, module by module as referenced per level.
 
 **If you only do five things per level:** L0 — "Building effective agents" + `npm run simulate` + Playbook §1/§10. L1 — tool-use guide + cookbook ×2 + the HR-tool lab. L2 — one framework deeply + MCP quickstart + the procurement agent. L3 — one eval tool + OTel GenAI conventions + the eval harness. L4 — OWASP LLM Top 10 + NIST GenAI Profile + the red-team exercise. L5 — the capstone; there is no shortcut.
