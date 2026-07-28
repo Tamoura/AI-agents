@@ -104,7 +104,7 @@ footer { color:var(--muted); font-size:.78rem; margin-top:2rem; }
 <body>
 <div class="wrap">
 <header class="top">
-  <span class="badge">Assessment · v1 · July 2026</span>
+  <span class="badge">Assessment · v1.1 · July 2026</span>
   <h1>Agentic AI Skills Assessment</h1>
   <p>Find your level, see what's missing for your role, get your plan. Companion to the Zero-to-Hero Curriculum.</p>
 </header>
@@ -145,8 +145,8 @@ footer { color:var(--muted); font-size:.78rem; margin-top:2rem; }
 <section id="tab-knowledge" class="hide">
   <div class="card">
     <h2>Knowledge check</h2>
-    <p class="sub">36 questions, ~15 minutes, spanning L0–L5 across all twelve disciplines. Answer without looking things up — this calibrates <em>you</em>, not your search skills. Unanswered counts as wrong.</p>
-    <div class="progress" id="k-progress">0 / 36 answered</div>
+    <p class="sub">40 questions, ~15 minutes, spanning L0–L5 across all twelve disciplines. Answer without looking things up — this calibrates <em>you</em>, not your search skills. Unanswered counts as wrong.</p>
+    <div class="progress" id="k-progress">0 / 40 answered</div>
     <div id="k-list"></div>
     <button class="primary" onclick="show('evidence')">Continue to evidence →</button>
   </div>
@@ -267,6 +267,10 @@ const QS = [
  {d:"lead",l:5,q:"The right first production use cases are…",o:["The most impressive demos for the board","High-volume, low-risk, measurable-baseline processes — internal ops before customer-facing","Customer credit decisions — highest ROI","Whatever competitors announced"],a:1},
  {d:"lead",l:5,q:"In build-vs-buy, the layer you must always own is…",o:["The LLM itself","The governance layer — it encodes your delegation-of-authority, Sharia rules, and QCB obligations, and must survive vendor changes","The chat UI","The GPU cluster"],a:1},
  {d:"lead",l:5,q:"You are a 'hero' (L5) when…",o:["You've read all the documentation","You've shipped one agent through all seven capstone steps and taught at least one cohort behind you","You hold three AI certifications","Your agent reached L3 autonomy"],a:1},
+ {d:"prompting",l:1,q:"Compared to equivalent English, Arabic text on common tokenizers typically costs…",o:["The same — tokens are language-neutral","Fewer tokens — Arabic script is more compact","1.5–3× more tokens — budget against your real Arabic/English traffic mix, not English benchmarks","Token count doesn't affect cost"],a:2},
+ {d:"retrieval",l:2,q:"Your RAG evals pass on Modern Standard Arabic test queries. What's still untested?",o:["Nothing — Arabic is covered","Dialectal and code-switched queries (Arabic + English terms) — the norm in real Gulf traffic; evals need per-dialect slices","Only latency remains","English queries"],a:1},
+ {d:"orch",l:2,q:"Multi-agent systems typically consume how many tokens versus a plain chat interaction?",o:["About the same","Roughly half — the work is split","Roughly 15× (single agents already ~4×) — pay it only for genuinely parallelizable work that evals prove simpler shapes can't do","Token use is unpredictable, so it doesn't factor into design"],a:2},
+ {d:"sec",l:4,q:"An agent combines private-data access, exposure to untrusted content, and the ability to communicate externally. The fix is…",o:["Better injection filters","Break at least one leg architecturally — the 'lethal trifecta' is structurally exploitable; no filter fixes it","More detailed logging","A larger, smarter model"],a:1},
 ];
 
 /* Evidence items: {id, lvl, text, d:[disciplines practiced]} — gates from the curriculum */
@@ -350,7 +354,7 @@ function computeRatings(answers, evidence, teach){
   for (const d of DISC){
     const qs = QS.map((q,i)=>({q,i})).filter(x=>x.q.d===d.id);
     const correct = qs.filter(x=>answers[x.i]===x.q.a).length;
-    const aware = correct >= 2;                       // ≥2 of 3
+    const aware = correct >= Math.ceil(qs.length*2/3);   // ≥2/3 of the discipline's questions
     const practiced = EV.some(e=>e.d.includes(d.id) && evidence[e.id]);
     let r = 0;
     if (aware || practiced) r = 1;
