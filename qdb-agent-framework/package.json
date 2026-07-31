@@ -16,7 +16,8 @@
     "simulate": "tsx scripts/simulate-workflow.ts",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
-    "docs:html": "node scripts/build-docs-html.mjs"
+    "docs:html": "node scripts/build-docs-html.mjs",
+    "eval": "tsx evals/run.ts"
   },
   "engines": {
     "node": ">=20.0.0"

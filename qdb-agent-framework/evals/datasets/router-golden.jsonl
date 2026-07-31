@@ -1,0 +1,34 @@
+{"id":"rt-001","utterance":"The core banking server in Azure Qatar is down and users can't log in","expect":{"targetAgent":"it_operations"}}
+{"id":"rt-002","utterance":"We have a P1 incident, the VPN is not working across the whole estate","expect":{"targetAgent":"it_operations"}}
+{"id":"rt-003","utterance":"Can you pull the disaster recovery playbook for the QDC3 failover?","expect":{"targetAgent":"it_operations"}}
+{"id":"rt-004","utterance":"What's the current service health and uptime for the firewall?","expect":{"targetAgent":"it_operations"}}
+{"id":"rt-005","utterance":"Show me the monitoring status of the network infrastructure","expect":{"targetAgent":"it_operations"}}
+{"id":"rt-006","utterance":"There's an outage on the Azure availability zone, error rates spiking","expect":{"targetAgent":"it_operations"}}
+{"id":"rt-007","utterance":"I need the backup and continuity plan for the data center","expect":{"targetAgent":"it_operations"}}
+{"id":"rt-008","utterance":"What is the project status for the MIS migration milestone?","expect":{"targetAgent":"pmo"}}
+{"id":"rt-009","utterance":"Give me the PMO delivery report for this sprint's timeline","expect":{"targetAgent":"pmo"}}
+{"id":"rt-010","utterance":"How is the portfolio project progressing against its deadline?","expect":{"targetAgent":"pmo"}}
+{"id":"rt-011","utterance":"Prepare the project dashboard showing budget and progress","expect":{"targetAgent":"pmo"}}
+{"id":"rt-012","utterance":"What's the delivery milestone status for the digital transformation project?","expect":{"targetAgent":"pmo"}}
+{"id":"rt-013","utterance":"Assess the credit review for this SME loan application","expect":{"targetAgent":"credit_assessment"}}
+{"id":"rt-014","utterance":"Run a credit analysis on the borrower's financials","expect":{"targetAgent":"credit_assessment"}}
+{"id":"rt-015","utterance":"Review the loan underwriting for the manufacturing sector applicant","expect":{"targetAgent":"credit_assessment"}}
+{"id":"rt-016","utterance":"Onboard this new customer and open their account lifecycle","expect":{"targetAgent":"customer_lifecycle"}}
+{"id":"rt-017","utterance":"Update the KYC record for an existing customer relationship","expect":{"targetAgent":"customer_lifecycle"}}
+{"id":"rt-018","utterance":"Monitor the portfolio exposure and concentration risk","expect":{"targetAgent":"portfolio_monitoring"}}
+{"id":"rt-019","utterance":"Flag any covenant breaches in the loan portfolio","expect":{"targetAgent":"portfolio_monitoring"}}
+{"id":"rt-020","utterance":"Check regulatory compliance against the QCB reporting requirements","expect":{"targetAgent":"regulatory_compliance"}}
+{"id":"rt-021","utterance":"Is this product Sharia compliant per the governance rules?","expect":{"targetAgent":"regulatory_compliance"}}
+{"id":"rt-022","utterance":"Generate the AML regulatory return for this quarter","expect":{"targetAgent":"regulatory_compliance"}}
+{"id":"rt-023","utterance":"The application keeps throwing an error when I click submit","expect":{"targetAgent":"it_operations"}}
+{"id":"rt-024","utterance":"Server health check and availability report please","expect":{"targetAgent":"it_operations"}}
+{"id":"rt-025","utterance":"What are the sprint deliverables and their timeline?","expect":{"targetAgent":"pmo"}}
+{"id":"rt-026","utterance":"Evaluate creditworthiness of the applicant for the working capital facility","expect":{"targetAgent":"credit_assessment"}}
+{"id":"rt-027","utterance":"Escalate this P1 database outage to the on-call team immediately","expect":{"targetAgent":"it_operations"}}
+{"id":"rt-028","utterance":"Portfolio monitoring: which exposures exceed the single-obligor limit?","expect":{"targetAgent":"portfolio_monitoring"}}
+{"id":"rt-029","utterance":"Customer lifecycle: process the account closure request","expect":{"targetAgent":"customer_lifecycle"}}
+{"id":"rt-030","utterance":"Pull the compliance status for the latest QCB circular","expect":{"targetAgent":"regulatory_compliance"}}
+{"id":"rt-oos-001","utterance":"What's a good recipe for machokoos and grilled hammour?","expect":{"lowConfidence":true}}
+{"id":"rt-oos-002","utterance":"Book me a flight from Doha to London next Tuesday","expect":{"lowConfidence":true}}
+{"id":"rt-oos-003","utterance":"Write a poem about the desert at sunset","expect":{"lowConfidence":true}}
+{"id":"rt-oos-004","utterance":"What do you think about the football match last night?","expect":{"lowConfidence":true}}
