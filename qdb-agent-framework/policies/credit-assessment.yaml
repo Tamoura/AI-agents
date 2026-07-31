@@ -1,3 +1,9 @@
+# STATUS: STAGED — policy defined, no agent implementation yet (src/agents/ has
+# router, it_operations, pmo). Credit is decision-SUPPORT only: a human credit
+# officer decides; the agent assembles, checks Sharia/QCB constraints, and drafts.
+# Automated credit decisions are the highest-risk category (EU AI Act Annex III
+# benchmark) — this stays a Phase 3 item pending governance-committee sign-off.
+# See PRODUCTION-PLAYBOOK §10 and LEARNING-PATH L5.
 agent_id: credit_assessment
 display_name: "Credit Assessment Agent"
 version: "1.0.0"
