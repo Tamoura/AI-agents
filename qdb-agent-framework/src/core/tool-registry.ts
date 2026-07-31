@@ -274,6 +274,8 @@ export class ToolRegistry implements IToolRegistry {
       autonomyLevel: AutonomyLevel.AUTONOMOUS,
       outcome,
       durationMs: Date.now() - startTime,
+      policyVersion: context.policyVersion,
+      modelId: context.modelId,
     };
 
     await this.auditLogger.log(entry);

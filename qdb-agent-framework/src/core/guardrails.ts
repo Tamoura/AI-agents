@@ -38,9 +38,30 @@ export interface GuardrailContext {
   readonly direction: "input" | "output";
 }
 
+// ─── Normalization ─────────────────────────────────────────────────────────
+
+const ARABIC_INDIC_DIGITS = /[٠-٩۰-۹]/g;
+
+/**
+ * Normalize content so detection rules see one canonical form:
+ * Arabic-Indic digits (٠-٩ / ۰-۹) → ASCII, and common Arabic letter variants
+ * (alef with hamza/madda → bare alef, ta marbuta → ha) so keyword patterns
+ * match real Gulf traffic, not just MSA-with-Latin-digits.
+ */
+export function normalizeForDetection(content: string): string {
+  return content
+    .replace(ARABIC_INDIC_DIGITS, (d) => {
+      const code = d.charCodeAt(0);
+      return String((code >= 0x06f0 ? code - 0x06f0 : code - 0x0660) % 10);
+    })
+    .replace(/[أإآٱ]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/[ً-ٰٟ]/g, ""); // strip tashkeel/diacritics
+}
+
 // ─── Built-in Rules ─────────────────────────────────────────────────────────
 
-/** Detects and blocks injection attempts in user input. */
+/** Detects and blocks injection attempts in user input (English + Arabic). */
 const INJECTION_PATTERNS = [
   /ignore\s+(all\s+)?previous\s+instructions/i,
   /you\s+are\s+now\s+(a|an)\s+/i,
@@ -51,15 +72,22 @@ const INJECTION_PATTERNS = [
   /ADMIN\s*OVERRIDE/i,
   /\bdo\s+anything\s+now\b/i,
   /jailbreak/i,
+  // Arabic-language injection markers (checked against normalized content)
+  /تجاهل\s+(كل\s+)?(التعليمات|الاوامر)\s+السابقه/, // "ignore (all) previous instructions"
+  /انت\s+الان\s+/,                                  // "you are now ..."
+  /انس\s+(كل\s+)?ما\s+سبق/,                        // "forget (all) that came before"
+  /تصرف\s+(كانك|بصفتك|بوصفك)/,                       // "act as / as if you are"
+  /وضع\s+المطور/,                                    // "developer mode"
 ];
 
 export const PROMPT_INJECTION_RULE: GuardrailRule = {
   name: "prompt_injection",
-  description: "Blocks prompt injection attempts",
+  description: "Blocks prompt injection attempts (English + Arabic)",
   severity: "BLOCK",
   check: (content) => {
+    const normalized = normalizeForDetection(content);
     for (const pattern of INJECTION_PATTERNS) {
-      if (pattern.test(content)) {
+      if (pattern.test(content) || pattern.test(normalized)) {
         return {
           rule: "prompt_injection",
           severity: "BLOCK",
@@ -73,9 +101,15 @@ export const PROMPT_INJECTION_RULE: GuardrailRule = {
 
 /** Detects PII in outputs to prevent data leakage. */
 const PII_PATTERNS_OUTPUT = [
-  { pattern: /\bQID[-\s]?\d{10,}\b/i, type: "Qatar National ID" },
-  { pattern: /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/, type: "Credit Card" },
+  // Qatar National ID: 11 digits, optionally QID-prefixed or in prose. Detected on normalized text.
+  { pattern: /\bQID[-\s]?\d{11}\b/i, type: "Qatar National ID" },
+  { pattern: /\b[23]\d{10}\b/, type: "Qatar National ID" },
+  // Qatar IBAN: QA + 2 check digits + 25 alphanumerics; generic IBAN as fallback.
+  { pattern: /\bQA\d{2}[A-Z0-9]{25}\b/i, type: "Qatar IBAN" },
   { pattern: /\b[A-Z]{2}\d{2}[A-Z0-9]{11,30}\b/, type: "IBAN" },
+  { pattern: /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/, type: "Credit Card" },
+  // Qatar mobile: +974 or 00974 then 3/5/6/7 + 7 digits; plus generic.
+  { pattern: /(?:\+?974|00974)[\s-]?[3567]\d{3}[\s-]?\d{4}/, type: "Qatar Phone Number" },
   { pattern: /\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/, type: "Phone Number" },
   { pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/, type: "Email Address" },
 ];
@@ -87,8 +121,9 @@ export const PII_LEAKAGE_RULE: GuardrailRule = {
   check: (content, context) => {
     if (context?.direction !== "output") return null;
 
+    const normalized = normalizeForDetection(content);
     for (const { pattern, type } of PII_PATTERNS_OUTPUT) {
-      if (pattern.test(content)) {
+      if (pattern.test(content) || pattern.test(normalized)) {
         return {
           rule: "pii_leakage",
           severity: "WARN",

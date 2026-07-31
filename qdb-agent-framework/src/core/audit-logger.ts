@@ -33,9 +33,17 @@ const CREATE_TABLE_SQL = `
     autonomy_level TEXT NOT NULL,
     outcome TEXT NOT NULL,
     duration_ms INTEGER,
+    policy_version TEXT,
+    model_id TEXT,
     metadata TEXT
   )
 `;
+
+/** Columns added after the initial schema; applied idempotently on open for forward-compatibility with existing DBs. */
+const MIGRATIONS: ReadonlyArray<{ column: string; ddl: string }> = [
+  { column: "policy_version", ddl: "ALTER TABLE audit_log ADD COLUMN policy_version TEXT" },
+  { column: "model_id", ddl: "ALTER TABLE audit_log ADD COLUMN model_id TEXT" },
+];
 
 const CREATE_INDEXES_SQL = [
   `CREATE INDEX IF NOT EXISTS idx_audit_correlation ON audit_log(correlation_id)`,
@@ -56,6 +64,13 @@ export class AuditLogger implements IAuditLogger {
 
   private initialize(): void {
     this.db.exec(CREATE_TABLE_SQL);
+    // Migrate pre-existing DBs that predate the versions-in-force columns.
+    const existing = new Set(
+      (this.db.prepare("PRAGMA table_info(audit_log)").all() as Array<{ name: string }>).map((c) => c.name),
+    );
+    for (const { column, ddl } of MIGRATIONS) {
+      if (!existing.has(column)) this.db.exec(ddl);
+    }
     for (const sql of CREATE_INDEXES_SQL) {
       this.db.exec(sql);
     }
@@ -75,11 +90,13 @@ export class AuditLogger implements IAuditLogger {
         INSERT INTO audit_log (
           entry_id, timestamp, correlation_id, agent_id, user_id,
           action, tool_id, input_summary, output_summary,
-          data_classification, autonomy_level, outcome, duration_ms, metadata
+          data_classification, autonomy_level, outcome, duration_ms,
+          policy_version, model_id, metadata
         ) VALUES (
           @entryId, @timestamp, @correlationId, @agentId, @userId,
           @action, @toolId, @inputSummary, @outputSummary,
-          @dataClassification, @autonomyLevel, @outcome, @durationMs, @metadata
+          @dataClassification, @autonomyLevel, @outcome, @durationMs,
+          @policyVersion, @modelId, @metadata
         )
       `);
 
@@ -97,6 +114,8 @@ export class AuditLogger implements IAuditLogger {
         autonomyLevel: entryWithId.autonomyLevel,
         outcome: entryWithId.outcome,
         durationMs: entryWithId.durationMs ?? null,
+        policyVersion: entryWithId.policyVersion ?? null,
+        modelId: entryWithId.modelId ?? null,
         metadata: entryWithId.metadata ? JSON.stringify(entryWithId.metadata) : null,
       });
 
@@ -200,6 +219,8 @@ interface AuditRow {
   autonomy_level: string;
   outcome: string;
   duration_ms: number | null;
+  policy_version: string | null;
+  model_id: string | null;
   metadata: string | null;
 }
 
@@ -218,6 +239,8 @@ function rowToAuditEntry(row: AuditRow): AuditEntry {
     autonomyLevel: row.autonomy_level as AutonomyLevel,
     outcome: row.outcome as AuditEntry["outcome"],
     durationMs: row.duration_ms ?? undefined,
+    policyVersion: row.policy_version ?? undefined,
+    modelId: row.model_id ?? undefined,
     metadata: row.metadata ? JSON.parse(row.metadata) as Record<string, unknown> : undefined,
   };
 }

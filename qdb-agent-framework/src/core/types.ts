@@ -204,6 +204,9 @@ export interface ToolExecutionContext {
   readonly sessionId: string;
   readonly userId?: string;
   readonly dataClassification: DataClassification;
+  /** Versions in force, propagated so tool-invocation audits are explainable after an upgrade (§9.1). */
+  readonly policyVersion?: string;
+  readonly modelId?: string;
 }
 
 export type ToolExecutor = (
@@ -312,6 +315,9 @@ export interface AuditEntry {
   readonly autonomyLevel: AutonomyLevel;
   readonly outcome: "SUCCESS" | "FAILURE" | "DENIED" | "ESCALATED";
   readonly durationMs?: number;
+  /** Versions in force at decision time — required to explain a historical decision after an upgrade (PRODUCTION-PLAYBOOK §9.1). */
+  readonly policyVersion?: string;
+  readonly modelId?: string;
   readonly metadata?: Record<string, unknown>;
 }
 

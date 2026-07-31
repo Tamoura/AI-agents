@@ -163,6 +163,7 @@ export abstract class BaseAgent {
         agentId: this.agentId,
         userId: envelope.metadata.userId,
         action: "agent_error",
+      policyVersion: this.policy.version,
         inputSummary: `Error handling message from ${envelope.sourceAgent}`,
         outputSummary: message,
         dataClassification: envelope.dataClassification,
@@ -215,6 +216,7 @@ export abstract class BaseAgent {
       sessionId,
       userId,
       dataClassification: this.policy.dataBoundaries.maxClassification,
+      policyVersion: this.policy.version,
     });
   }
 
@@ -270,6 +272,7 @@ export abstract class BaseAgent {
       agentId: this.agentId,
       userId: envelope.metadata.userId,
       action: "escalation",
+      policyVersion: this.policy.version,
       inputSummary: reason,
       outputSummary: `Escalated to: ${matchingRule?.notify.join(", ") ?? "default escalation chain"}`,
       dataClassification: envelope.dataClassification,
@@ -460,6 +463,7 @@ export abstract class BaseAgent {
       agentId: this.agentId,
       userId: envelope.metadata.userId,
       action: envelope.action,
+      policyVersion: this.policy.version,
       inputSummary: `Message from ${envelope.sourceAgent}: ${envelope.action}`,
       outputSummary: response.message,
       dataClassification: envelope.dataClassification,
