@@ -1,0 +1,40 @@
+name: CI
+
+# Required checks for the QDB Agent Framework. A prompt, policy, tool, or model
+# change is a code change (PRODUCTION-PLAYBOOK §9): it does not merge unless
+# typecheck, tests, and the eval suites pass. The git history of policies/ +
+# these gates is the regulator-facing change record.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+defaults:
+  run:
+    working-directory: qdb-agent-framework
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: qdb-agent-framework/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit + governance tests
+        run: npm test
+
+      - name: Evals (golden + adversarial)
+        run: npm run eval
