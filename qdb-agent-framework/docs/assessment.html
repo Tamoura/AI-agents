@@ -106,7 +106,7 @@ footer { color:var(--muted); font-size:.78rem; margin-top:2rem; }
 <body>
 <div class="wrap">
 <header class="top">
-  <span class="badge">Assessment · v1.2 · July 2026</span>
+  <span class="badge">Assessment · v1.3 · July 2026</span>
   <h1>Agentic AI Skills Assessment</h1>
   <p>Find your level, see what's missing for your role, get your plan. Companion to the Zero-to-Hero Curriculum.</p>
 </header>
@@ -203,6 +203,7 @@ scoring rules mirror the Curriculum: 1 aware = knowledge, 2 practiced = shipped 
 <script>
 "use strict";
 /* ─── Model ──────────────────────────────────────────────────────────── */
+const TOOL_VERSION = "1.3";
 const DISC = [
   { id:"prompting", name:"Prompting & LLM APIs",            mods:"M1.1–M1.2", lab:"Streaming multi-turn script with retries + cost cap; triage-prompt accuracy iteration" },
   { id:"tools",     name:"Tool use & structured output",    mods:"M1.3–M1.4", lab:"Build query-hr-directory tool + allowlist denial test (the L1 gate)" },
@@ -433,6 +434,18 @@ function computeResults(){
         <div class="why">${ratings[d.id]===0?"Start with the concepts, then the lab.":"You know the concepts — now ship the gate artifact."}
         Do <b>${d.mods}</b>: ${d.lab}.</div></div>`).join("");
 
+  /* Missed-question review: which questions you got wrong or skipped, by discipline.
+     The correct option is deliberately NOT shown, so questions stay reusable across cohorts. */
+  const missed = QS.map((q,i)=>({q,i})).filter(x=>S.answers[x.i]!==x.q.a);
+  const missedHtml = missed.length===0
+    ? `<h3>Knowledge review</h3><p><span class="pill good">✓</span> Full marks — every question correct.</p>`
+    : `<h3>Knowledge review — ${missed.length} to revisit</h3>
+       <p class="sub">Correct answers aren't shown (questions are reused across cohorts). Re-study the listed module and retake.</p>
+       <div class="table-wrap"><table><thead><tr><th>Question</th><th>Discipline · module</th><th>Your answer</th></tr></thead><tbody>
+       ${missed.map(({q,i})=>{const d=DISC.find(x=>x.id===q.d);const pick=S.answers[i]==null?"<em>skipped</em>":q.o[S.answers[i]].replace(/</g,"&lt;");
+         return `<tr><td>${q.q.replace(/</g,"&lt;")}</td><td>${d.name} · L${q.l}</td><td style="color:var(--muted)">${pick}</td></tr>`;}).join("")}
+       </tbody></table></div>`;
+
   document.getElementById("r-card").innerHTML = `
     <h2>${S.name||"Your"} results — assessed as ${ROLE_NAMES[S.role]}</h2>
     <div class="hero">
@@ -451,6 +464,7 @@ function computeResults(){
     ${gapsHtml}
     ${nextItems.length? `<h3>To reach ${nextLvl}, ship these gate artifacts</h3>
       <ul>${nextItems.map(t=>`<li>${t}</li>`).join("")}</ul>`:""}
+    ${missedHtml}
     <p class="sub" style="margin-top:1rem">Honesty check: a rating of 2 claimed here must survive review by the person who reviewed the artifact. If it wouldn't, uncheck it — the plan only works on true inputs.</p>`;
   document.getElementById("r-actions").style.display = "block";
 }
@@ -458,7 +472,7 @@ function computeResults(){
 /* ─── Export / team ─────────────────────────────────────────────────── */
 function exportJSON(){
   const { ratings, detail } = computeRatings(S.answers, S.evidence, S.teach);
-  const payload = { v:1, name:S.name||"anonymous", role:S.role,
+  const payload = { v:1, toolVersion: TOOL_VERSION, name:S.name||"anonymous", role:S.role,
     level: evidenceLevel(S.evidence),
     knowledge: QS.filter((q,i)=>S.answers[i]===q.a).length + "/" + QS.length,
     ratings, detail, exportedAt: new Date().toISOString() };
