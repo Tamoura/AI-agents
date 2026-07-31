@@ -196,6 +196,8 @@ export interface ToolManifest {
   readonly retryPolicy: RetryPolicy;
   readonly auditLevel: AuditLevel;
   readonly shariaRelevance: boolean;
+  /** If set, the requesting USER must hold this entitlement (confused-deputy prevention, §3.1). */
+  readonly requiredEntitlement?: string;
 }
 
 export interface ToolExecutionContext {
@@ -207,6 +209,10 @@ export interface ToolExecutionContext {
   /** Versions in force, propagated so tool-invocation audits are explainable after an upgrade (§9.1). */
   readonly policyVersion?: string;
   readonly modelId?: string;
+  /** Entitlements the requesting user holds — checked against a tool's requiredEntitlement. */
+  readonly userEntitlements?: readonly string[];
+  /** Verified workload-identity token of the calling agent (NHI). */
+  readonly agentIdentityToken?: string;
 }
 
 export type ToolExecutor = (

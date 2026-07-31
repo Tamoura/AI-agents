@@ -24,6 +24,7 @@ import {
   DATA_CLASSIFICATION_RANK,
 } from "./types.js";
 import { validateManifest, validateToolInput } from "./tool-manifest.js";
+import { assertUserEntitled } from "./identity.js";
 
 interface RateLimitEntry {
   count: number;
@@ -141,13 +142,21 @@ export class ToolRegistry implements IToolRegistry {
       });
     }
 
-    // 2. Authorization check
+    // 2. Authorization check (agent leg)
     if (!manifest.authorizedAgents.includes(context.requestingAgent)) {
       await this.logAudit(toolId, context, "DENIED", startTime, `Agent "${context.requestingAgent}" not authorized`);
       return Err({
         code: ErrorCodes.TOOL_UNAUTHORIZED,
         message: `Agent "${context.requestingAgent}" is not authorized to invoke tool "${toolId}".`,
       });
+    }
+
+    // 2b. Confused-deputy check (user leg): agent authorization is necessary but not
+    // sufficient — the requesting user must also hold any entitlement the tool demands.
+    const entitlement = assertUserEntitled(manifest.requiredEntitlement, context.userEntitlements);
+    if (!entitlement.ok) {
+      await this.logAudit(toolId, context, "DENIED", startTime, entitlement.error.message);
+      return Err(entitlement.error);
     }
 
     // 3. Input validation
