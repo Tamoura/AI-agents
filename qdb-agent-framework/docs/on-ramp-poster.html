@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to Run Agents in Production — QDB</title>
+<style>
+:root{
+  --bg:#f7f6f2; --panel:#ffffff; --ink:#1e232c; --muted:#5b6470; --line:#e4e0d8;
+  --accent:#7a1f2b; --accent-soft:#f4e4e6; --flow:#2e6b3e; --flow-soft:#e6f0e7;
+  --chip:#f1efe9; --shadow:0 1px 3px rgba(25,25,35,.08); --shadow-lg:0 6px 24px rgba(25,25,35,.09);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#14161a; --panel:#1c1f25; --ink:#e9e7e2; --muted:#9aa0aa; --line:#2c3038;
+    --accent:#dd8a94; --accent-soft:#3a2226; --flow:#82c091; --flow-soft:#1e2c20;
+    --chip:#262a31; --shadow:0 1px 3px rgba(0,0,0,.4); --shadow-lg:0 6px 24px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+    --bg:#14161a; --panel:#1c1f25; --ink:#e9e7e2; --muted:#9aa0aa; --line:#2c3038;
+    --accent:#dd8a94; --accent-soft:#3a2226; --flow:#82c091; --flow-soft:#1e2c20;
+    --chip:#262a31; --shadow:0 1px 3px rgba(0,0,0,.4); --shadow-lg:0 6px 24px rgba(0,0,0,.45);
+}
+:root[data-theme="light"]{
+  --bg:#f7f6f2; --panel:#ffffff; --ink:#1e232c; --muted:#5b6470; --line:#e4e0d8;
+  --accent:#7a1f2b; --accent-soft:#f4e4e6; --flow:#2e6b3e; --flow-soft:#e6f0e7;
+  --chip:#f1efe9; --shadow:0 1px 3px rgba(25,25,35,.08); --shadow-lg:0 6px 24px rgba(25,25,35,.09);
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.55 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}
+.wrap{max-width:1120px;margin:0 auto;padding:2.5rem 1.5rem 5rem;}
+.kicker{font-size:.72rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);}
+h1{font-family:"Iowan Old Style",Palatino,Georgia,serif;font-size:2.9rem;line-height:1.04;margin:.5rem 0 .4rem;letter-spacing:-.5px;}
+h1 .hl{color:var(--accent);}
+.lede{color:var(--muted);font-size:1.05rem;max-width:60ch;margin:0;}
+.contrast{margin:1.5rem 0 0;padding:.85rem 1.1rem;background:var(--accent-soft);border-radius:12px;
+  font-size:.9rem;border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);}
+.contrast b{color:var(--accent);}
+.section-label{display:flex;align-items:center;gap:.7rem;margin:3rem 0 1.1rem;}
+.section-label h2{font-size:1.15rem;margin:0;white-space:nowrap;}
+.section-label::after{content:"";flex:1;height:1px;background:var(--line);}
+figure{margin:0;}
+.hero-fig{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:1.5rem 1.25rem 1rem;box-shadow:var(--shadow-lg);}
+.hero-fig svg{width:100%;height:auto;display:block;}
+figcaption{color:var(--muted);font-size:.85rem;margin-top:.6rem;text-align:center;}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:1.25rem 1.25rem 1.1rem;
+  box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.card::before{content:"";position:absolute;top:0;left:0;width:4px;height:100%;background:var(--accent);opacity:.85;}
+.card .head{display:flex;align-items:center;gap:.7rem;margin-bottom:.15rem;}
+.num{flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;
+  display:grid;place-items:center;font-weight:800;font-size:.9rem;}
+.card h3{font-size:1.12rem;margin:0;}
+.icon{flex:none;margin-left:auto;color:var(--accent);}
+.tagline{color:var(--muted);font-size:.86rem;margin:.15rem 0 .7rem;}
+.chips{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.7rem;}
+.chip{font-size:.73rem;background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:.18rem .55rem;color:var(--ink);}
+.map{font-size:.76rem;color:var(--flow);font-weight:600;border-top:1px dashed var(--line);padding-top:.55rem;}
+.ladder{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:1.4rem 1.25rem 1rem;box-shadow:var(--shadow);}
+.ladder svg{width:100%;height:auto;display:block;}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);background:var(--panel);}
+table{border-collapse:collapse;width:100%;font-size:.83rem;min-width:640px;}
+th{background:var(--accent-soft);text-align:left;font-weight:700;color:var(--ink);}
+th,td{padding:.6rem .85rem;border-bottom:1px solid var(--line);vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+td.layer{font-weight:700;white-space:nowrap;}
+td .reg{color:var(--accent);font-weight:600;}
+.foot{margin-top:3rem;padding-top:1.25rem;border-top:1px solid var(--line);color:var(--muted);font-size:.82rem;
+  display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;justify-content:space-between;}
+.foot b{color:var(--ink);}
+@media (max-width:720px){
+  h1{font-size:2.1rem;}
+  .grid{grid-template-columns:1fr;}
+}
+@media print{
+  body{background:#fff;color:#000;}
+  .card,.hero-fig,.ladder,.table-wrap{box-shadow:none;break-inside:avoid;}
+  .section-label{break-after:avoid;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker">QDB Agentic AI Program · On-ramp</div>
+    <h1>How to <span class="hl">Run</span> Agents in Production</h1>
+    <p class="lede">The eight pillars of running agents as governed digital employees in a regulated bank — the half of the job the "how to build an agent" guides leave out.</p>
+    <div class="contrast">
+      Build-guides stop at <b>"it works on my machine."</b> A bank ships only when it can answer three questions in writing: <b>what's the worst this agent can do, who reviews it, and how do we turn it off.</b> This poster is those answers, on one page.
+    </div>
+  </header>
+
+  <div class="section-label"><h2>The one idea</h2></div>
+  <figure class="hero-fig">
+    <svg viewBox="0 0 760 240" role="img" aria-label="A request flows from the model, which proposes an action; a policy engine decides using allowlist, data ceiling and autonomy; the result is execute, escalate to a human, or refuse; every path writes to an immutable audit log.">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+        <marker id="arA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+        </marker>
+      </defs>
+      <!-- Model -->
+      <rect x="8" y="92" width="132" height="56" rx="10" fill="var(--flow-soft)" stroke="var(--flow)" stroke-width="1.5"/>
+      <text x="74" y="115" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor">LLM</text>
+      <text x="74" y="132" text-anchor="middle" font-size="10.5" fill="currentColor">proposes an action</text>
+      <!-- arrow to policy -->
+      <line x1="140" y1="120" x2="212" y2="120" stroke="currentColor" stroke-width="1.6" marker-end="url(#ar)"/>
+      <text x="176" y="112" text-anchor="middle" font-size="9.5" fill="var(--muted)">requests</text>
+      <!-- Policy engine (the load-bearing box) -->
+      <rect x="214" y="72" width="176" height="96" rx="12" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+      <text x="302" y="96" text-anchor="middle" font-size="13" font-weight="800" fill="var(--accent)">POLICY ENGINE</text>
+      <text x="302" y="116" text-anchor="middle" font-size="10" fill="currentColor">allowlist ·</text>
+      <text x="302" y="131" text-anchor="middle" font-size="10" fill="currentColor">data ceiling ·</text>
+      <text x="302" y="146" text-anchor="middle" font-size="10" fill="currentColor">autonomy level</text>
+      <text x="302" y="60" text-anchor="middle" font-size="9.5" font-style="italic" fill="var(--accent)">code, not the prompt</text>
+      <!-- three outcomes -->
+      <line x1="390" y1="96"  x2="470" y2="52"  stroke="var(--accent)" stroke-width="1.6" marker-end="url(#arA)"/>
+      <line x1="390" y1="120" x2="470" y2="120" stroke="var(--accent)" stroke-width="1.6" marker-end="url(#arA)"/>
+      <line x1="390" y1="144" x2="470" y2="188" stroke="var(--accent)" stroke-width="1.6" marker-end="url(#arA)"/>
+      <rect x="472" y="30" width="150" height="44" rx="9" fill="var(--panel)" stroke="var(--flow)" stroke-width="1.5"/>
+      <text x="547" y="49" text-anchor="middle" font-size="11.5" font-weight="700" fill="currentColor">Execute tool</text>
+      <text x="547" y="63" text-anchor="middle" font-size="9.5" fill="var(--muted)">within ceiling</text>
+      <rect x="472" y="98" width="150" height="44" rx="9" fill="var(--panel)" stroke="currentColor" stroke-width="1.3"/>
+      <text x="547" y="117" text-anchor="middle" font-size="11.5" font-weight="700" fill="currentColor">Escalate → human</text>
+      <text x="547" y="131" text-anchor="middle" font-size="9.5" fill="var(--muted)">MUTATE + sensitive</text>
+      <rect x="472" y="166" width="150" height="44" rx="9" fill="var(--panel)" stroke="currentColor" stroke-width="1.3"/>
+      <text x="547" y="185" text-anchor="middle" font-size="11.5" font-weight="700" fill="currentColor">Refuse</text>
+      <text x="547" y="199" text-anchor="middle" font-size="9.5" fill="var(--muted)">out of bounds</text>
+      <!-- audit -->
+      <line x1="622" y1="52"  x2="694" y2="112" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar)"/>
+      <line x1="622" y1="120" x2="694" y2="120" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar)"/>
+      <line x1="622" y1="188" x2="694" y2="128" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar)"/>
+      <rect x="696" y="96" width="56" height="48" rx="9" fill="var(--flow-soft)" stroke="var(--flow)" stroke-width="1.5"/>
+      <text x="724" y="116" text-anchor="middle" font-size="10.5" font-weight="700" fill="currentColor">Audit</text>
+      <text x="724" y="130" text-anchor="middle" font-size="10.5" font-weight="700" fill="currentColor">log</text>
+    </svg>
+    <figcaption>Deterministic governance around non-deterministic reasoning: the model decides <em>what to request</em>; code decides <em>whether it's allowed</em>; every path is audited. You can't certify a prompt — you can certify this engine.</figcaption>
+  </figure>
+
+  <div class="section-label"><h2>The 8 pillars</h2></div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="head"><span class="num">1</span><h3>Build</h3>
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="16" height="4" rx="1"/><rect x="4" y="10" width="16" height="4" rx="1"/><rect x="4" y="16" width="16" height="4" rx="1"/></svg></div>
+      <p class="tagline">Small specialised agents behind a router; deterministic harness around the model.</p>
+      <div class="chips"><span class="chip">one job per agent</span><span class="chip">graph workflows</span><span class="chip">typed contracts</span><span class="chip">provider-agnostic</span></div>
+      <div class="map">→ policy YAML · router · graph-engine</div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="num">2</span><h3>Secure</h3>
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
+      <p class="tagline">Least privilege you can't talk your way past; contain injection, don't just filter it.</p>
+      <div class="chips"><span class="chip">identity per agent</span><span class="chip">tool allowlists</span><span class="chip">blast-radius bound</span><span class="chip">confused-deputy guard</span></div>
+      <div class="map">→ identity.ts · tool-registry · guardrails</div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="num">3</span><h3>Communicate</h3>
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="12" r="2.5"/><line x1="8.5" y1="12" x2="15.5" y2="12"/><path d="M13 9.5l2.5 2.5-2.5 2.5"/></svg></div>
+      <p class="tagline">Typed envelopes between agents; the autonomy ladder between agent and human.</p>
+      <div class="chips"><span class="chip">correlation IDs</span><span class="chip">authority travels</span><span class="chip">MCP / A2A at edges</span><span class="chip">maker-checker</span></div>
+      <div class="map">→ message-envelope · escalation · MCP</div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="num">4</span><h3>Govern</h3>
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 4v16M6 8h12"/><path d="M6 8l-2.5 5a3 3 0 005 0z"/><path d="M18 8l-2.5 5a3 3 0 005 0z"/></svg></div>
+      <p class="tagline">A named human owns every agent; policy-as-code is the regulator-facing record.</p>
+      <div class="chips"><span class="chip">owner team</span><span class="chip">AI gov committee</span><span class="chip">QCB · PDPPL · Sharia</span><span class="chip">EU AI Act bench</span></div>
+      <div class="map">→ policies/ + git history · templates/</div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="num">5</span><h3>Guardrail</h3>
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg></div>
+      <p class="tagline">Enforcement on every input, output, tool-call, and behavioural limit — Arabic included.</p>
+      <div class="chips"><span class="chip">injection block</span><span class="chip">DLP-grade PII</span><span class="chip">turn / cost caps</span><span class="chip">BLOCK · WARN · INFO</span></div>
+      <div class="map">→ guardrails.ts · normalizeForDetection</div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="num">6</span><h3>Evaluate</h3>
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8l2 2 4-4M8 15l2 2 4-4"/></svg></div>
+      <p class="tagline">Measure behaviour, not one lucky run. A prompt edit is a code change; evals gate it.</p>
+      <div class="chips"><span class="chip">golden datasets</span><span class="chip">adversarial suite</span><span class="chip">CI gates</span><span class="chip">override-rate KPI</span></div>
+      <div class="map">→ evals/ · npm run eval</div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="num">7</span><h3>Observe</h3>
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="2.5"/></svg></div>
+      <p class="tagline">Two systems: an immutable audit trail and operational telemetry. Reconstruct any decision.</p>
+      <div class="chips"><span class="chip">append-only audit</span><span class="chip">versions in force</span><span class="chip">OTel traces</span><span class="chip">behavioural alerts</span></div>
+      <div class="map">→ audit-logger · observability · runbooks/</div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="num">8</span><h3>Version</h3>
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="12" r="2.5"/><path d="M6 8.5v7M8 6h5a3 3 0 013 3v.5M8 18h5a3 3 0 003-3v-.5"/></svg></div>
+      <p class="tagline">An agent is five versioned artifacts. Never "latest". Rollback and kill-switch are drilled.</p>
+      <div class="chips"><span class="chip">policy · prompt · tools</span><span class="chip">pinned model</span><span class="chip">shadow → prod</span><span class="chip">3-level kill switch</span></div>
+      <div class="map">→ semver policies · CI · admin route</div>
+    </div>
+
+  </div>
+
+  <div class="section-label"><h2>Autonomy is earned, not granted</h2></div>
+  <figure class="ladder">
+    <svg viewBox="0 0 760 130" role="img" aria-label="The autonomy ladder: L0 shadow, then L1 notify, then L2 approve, then L3 autonomous — each promotion gated by an evidence pack, and autonomy earned per task category, not per agent.">
+      <defs>
+        <marker id="lad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--flow)"/></marker>
+      </defs>
+      <g>
+        <rect x="8"   y="70" width="150" height="44" rx="9" fill="var(--panel)" stroke="currentColor" stroke-width="1.3"/>
+        <text x="83"  y="88"  text-anchor="middle" font-size="12" font-weight="700" fill="currentColor">L0 · Shadow</text>
+        <text x="83"  y="103" text-anchor="middle" font-size="9.5" fill="var(--muted)">runs, no effect</text>
+
+        <rect x="204" y="70" width="150" height="44" rx="9" fill="var(--panel)" stroke="currentColor" stroke-width="1.3"/>
+        <text x="279" y="88"  text-anchor="middle" font-size="12" font-weight="700" fill="currentColor">L1 · Notify</text>
+        <text x="279" y="103" text-anchor="middle" font-size="9.5" fill="var(--muted)">acts, tells you</text>
+
+        <rect x="400" y="70" width="150" height="44" rx="9" fill="var(--panel)" stroke="currentColor" stroke-width="1.3"/>
+        <text x="475" y="88"  text-anchor="middle" font-size="12" font-weight="700" fill="currentColor">L2 · Approve</text>
+        <text x="475" y="103" text-anchor="middle" font-size="9.5" fill="var(--muted)">human signs off</text>
+
+        <rect x="596" y="70" width="156" height="44" rx="9" fill="var(--flow-soft)" stroke="var(--flow)" stroke-width="1.6"/>
+        <text x="674" y="88"  text-anchor="middle" font-size="12" font-weight="700" fill="currentColor">L3 · Autonomous</text>
+        <text x="674" y="103" text-anchor="middle" font-size="9.5" fill="var(--muted)">sampled review</text>
+      </g>
+      <line x1="158" y1="92" x2="200" y2="92" stroke="var(--flow)" stroke-width="1.6" marker-end="url(#lad)"/>
+      <line x1="354" y1="92" x2="396" y2="92" stroke="var(--flow)" stroke-width="1.6" marker-end="url(#lad)"/>
+      <line x1="550" y1="92" x2="592" y2="92" stroke="var(--flow)" stroke-width="1.6" marker-end="url(#lad)"/>
+      <text x="179" y="83" text-anchor="middle" font-size="8.5" fill="var(--flow)">evidence</text>
+      <text x="375" y="83" text-anchor="middle" font-size="8.5" fill="var(--flow)">evidence</text>
+      <text x="571" y="83" text-anchor="middle" font-size="8.5" fill="var(--flow)">evidence</text>
+      <text x="10" y="30" font-size="13" font-weight="700" fill="currentColor">New-hire → delegated authority</text>
+      <text x="10" y="48" font-size="10.5" fill="var(--muted)">Each promotion needs an evidence pack: eval results · KPI history · red-team · rollback. Earned per task category, not per agent.</text>
+    </svg>
+  </figure>
+
+  <div class="section-label"><h2>The 2026 regulated stack — pick one per layer</h2></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Layer</th><th>Options (mid-2026)</th><th>What decides it in a bank</th></tr></thead>
+      <tbody>
+        <tr><td class="layer">Orchestration</td><td>Claude Agent SDK · LangGraph 1.0 · OpenAI Agents SDK · Microsoft Agent Framework</td><td><span class="reg">Graph, checkpoint &amp; interrupt support</span> for auditable, resumable, human-gated flows</td></tr>
+        <tr><td class="layer">Agent protocols</td><td>MCP (tools) · A2A v1.0 (agents) · AP2 (payments)</td><td>MCP is settled — adopt. A2A only across org boundaries; <span class="reg">authority stays in your envelope</span></td></tr>
+        <tr><td class="layer">Model &amp; hosting</td><td>Claude / GPT / Gemini · local (Ollama) · Azure Qatar</td><td><span class="reg">CONFIDENTIAL+ stays in-region;</span> pinned IDs, never "latest"</td></tr>
+        <tr><td class="layer">Evaluation</td><td>promptfoo · Braintrust · LangSmith · your CI</td><td>CLI that gates CI + dataset versioning; owner team curates truth</td></tr>
+        <tr><td class="layer">Observability</td><td>OTel + Jaeger/Grafana · Datadog LLM · Azure Monitor</td><td>Speaks OTel GenAI conventions; <span class="reg">audit trail kept separate</span> from telemetry</td></tr>
+        <tr><td class="layer">Guardrails / DLP</td><td>Presidio · cloud DLP · guardrail libraries</td><td><span class="reg">Arabic-script, QID &amp; IBAN coverage</span> — English-only is false assurance</td></tr>
+        <tr><td class="layer">Retrieval</td><td>pgvector · Azure AI Search · hybrid + rerank</td><td>Query-time entitlement filtering; citations mandatory</td></tr>
+        <tr><td class="layer">Governance</td><td><b>Build this yourself</b> — policies, committee, evidence packs</td><td><span class="reg">The one layer you never outsource</span> — it survives every vendor change</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="foot">
+    <span>Depth behind each pillar: <b>PRODUCTION-PLAYBOOK.md</b> · Learn it: <b>LEARNING-PATH.md</b> (L0→L5) · Place yourself: <b>assessment.html</b></span>
+    <span>QDB Agent Framework · on-ramp v1 · 2026</span>
+  </div>
+
+</div>
+</body>
+</html>
