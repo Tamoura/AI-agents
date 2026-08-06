@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QDB Agentic AI — Program</title>
+<style>
+:root{
+  --bg:#f7f6f2;--panel:#fff;--ink:#1e232c;--muted:#5b6470;--line:#e4e0d8;
+  --accent:#7a1f2b;--accent-soft:#f4e4e6;--flow:#2e6b3e;--shadow:0 1px 3px rgba(25,25,35,.08);--shadow-lg:0 8px 30px rgba(25,25,35,.1);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#14161a;--panel:#1c1f25;--ink:#e9e7e2;--muted:#9aa0aa;--line:#2c3038;
+  --accent:#dd8a94;--accent-soft:#3a2226;--flow:#82c091;--shadow:0 1px 3px rgba(0,0,0,.4);--shadow-lg:0 8px 30px rgba(0,0,0,.5);}}
+:root[data-theme="dark"]{--bg:#14161a;--panel:#1c1f25;--ink:#e9e7e2;--muted:#9aa0aa;--line:#2c3038;--accent:#dd8a94;--accent-soft:#3a2226;--flow:#82c091;--shadow:0 1px 3px rgba(0,0,0,.4);--shadow-lg:0 8px 30px rgba(0,0,0,.5);}
+:root[data-theme="light"]{--bg:#f7f6f2;--panel:#fff;--ink:#1e232c;--muted:#5b6470;--line:#e4e0d8;--accent:#7a1f2b;--accent-soft:#f4e4e6;--flow:#2e6b3e;--shadow:0 1px 3px rgba(25,25,35,.08);--shadow-lg:0 8px 30px rgba(25,25,35,.1);}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}
+.wrap{max-width:900px;margin:0 auto;padding:3.5rem 1.5rem 6rem;}
+.kicker{font-size:.72rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);}
+h1{font-family:"Iowan Old Style",Palatino,Georgia,serif;font-size:2.7rem;line-height:1.05;margin:.5rem 0 .5rem;letter-spacing:-.5px;}
+h1 .hl{color:var(--accent);}
+.lede{color:var(--muted);font-size:1.08rem;max-width:60ch;margin:0 0 2.5rem;}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.1rem;}
+a.card{display:block;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--line);
+  border-radius:16px;padding:1.4rem 1.5rem;box-shadow:var(--shadow);transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease;position:relative;overflow:hidden;}
+a.card::before{content:"";position:absolute;top:0;left:0;width:4px;height:100%;background:var(--accent);opacity:.85;}
+a.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--accent);}
+a.card:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+.card .em{font-size:1.6rem;}
+.card h2{font-size:1.2rem;margin:.5rem 0 .3rem;}
+.card p{color:var(--muted);font-size:.9rem;margin:0 0 .6rem;}
+.card .go{font-size:.8rem;font-weight:700;color:var(--flow);}
+.span2{grid-column:1 / -1;}
+.foot{margin-top:2.5rem;color:var(--muted);font-size:.82rem;}
+.foot a{color:var(--accent);}
+@media (max-width:640px){h1{font-size:2.05rem;}.grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Qatar Development Bank · Agentic AI Program</div>
+  <h1>Running AI Agents in <span class="hl">Production</span></h1>
+  <p class="lede">Everything for standing up agents as governed digital employees in a regulated bank — the program, the playbook, the curriculum, and a way to place yourself against it.</p>
+
+  <div class="grid">
+    <a class="card span2" href="on-ramp-poster.html">
+      <div class="em">🗺️</div>
+      <h2>Start here — the on-ramp poster</h2>
+      <p>The eight pillars of running agents in production, on one glanceable page: build · secure · communicate · govern · guardrail · evaluate · observe · version.</p>
+      <span class="go">Open the poster →</span>
+    </a>
+
+    <a class="card" href="learning-path.html">
+      <div class="em">🤖</div>
+      <h2>Zero-to-Hero Curriculum</h2>
+      <p>A leveled L0→L5 program, 28 modules with hands-on labs against the framework, role tracks, and gates you pass by shipping.</p>
+      <span class="go">Learn it →</span>
+    </a>
+
+    <a class="card" href="production-playbook.html">
+      <div class="em">📘</div>
+      <h2>Production Playbook</h2>
+      <p>The what and why: architecture, security, governance, evaluation, and the QCB / PDPPL / Sharia / EU-AI-Act regulatory stack, mapped to the code.</p>
+      <span class="go">Read it →</span>
+    </a>
+
+    <a class="card span2" href="assessment.html">
+      <div class="em">📊</div>
+      <h2>Skills Assessment</h2>
+      <p>Place yourself and your team: a knowledge check plus evidence gates that produce per-discipline ratings, role-target gaps, and a personalized plan — with a team-aggregation view for the program lead.</p>
+      <span class="go">Take the assessment →</span>
+    </a>
+  </div>
+
+  <p class="foot">Source &amp; reference framework: <a href="https://github.com/Tamoura/AI-agents">github.com/Tamoura/AI-agents</a> · <code>qdb-agent-framework</code></p>
+</div>
+</body>
+</html>
