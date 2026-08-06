@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Course Library — Build with AI · Run AI in Production</title>
+<style>
+:root{
+  --bg:#f6f5f1; --panel:#ffffff; --ink:#1d2128; --muted:#5c6470; --line:#e5e1d9;
+  --accent:#7a1f2b; --accent-soft:#f3e3e5;      /* "run" — maroon */
+  --build:#2f6f57; --build-soft:#e4efe9;        /* "build" — green */
+  --shadow:0 1px 3px rgba(20,20,30,.07); --shadow-lg:0 14px 40px rgba(20,20,30,.13);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#131519; --panel:#1b1e24; --ink:#e9e7e2; --muted:#9aa0aa; --line:#2b2f37;
+  --accent:#dd8a94; --accent-soft:#39232700;
+  --build:#7cc0a4; --build-soft:#1c2b24;
+  --shadow:0 1px 3px rgba(0,0,0,.4); --shadow-lg:0 14px 40px rgba(0,0,0,.55);
+}}
+:root[data-theme="dark"]{--bg:#131519;--panel:#1b1e24;--ink:#e9e7e2;--muted:#9aa0aa;--line:#2b2f37;--accent:#dd8a94;--accent-soft:#2a1e20;--build:#7cc0a4;--build-soft:#1c2b24;--shadow:0 1px 3px rgba(0,0,0,.4);--shadow-lg:0 14px 40px rgba(0,0,0,.55);}
+:root[data-theme="light"]{--bg:#f6f5f1;--panel:#fff;--ink:#1d2128;--muted:#5c6470;--line:#e5e1d9;--accent:#7a1f2b;--accent-soft:#f3e3e5;--build:#2f6f57;--build-soft:#e4efe9;--shadow:0 1px 3px rgba(20,20,30,.07);--shadow-lg:0 14px 40px rgba(20,20,30,.13);}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.6 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}
+.wrap{max-width:1040px;margin:0 auto;padding:clamp(2.5rem,6vw,5rem) 1.5rem 5rem;}
+.brand{font-size:.72rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+.hero{margin:.6rem 0 3rem;}
+.hero h1{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  font-size:clamp(2.3rem,5.5vw,3.6rem);line-height:1.03;letter-spacing:-1px;margin:.3rem 0 .8rem;text-wrap:balance;}
+.hero h1 .b{color:var(--build);} .hero h1 .r{color:var(--accent);}
+.hero p{color:var(--muted);font-size:clamp(1rem,2.2vw,1.18rem);max-width:60ch;margin:0;}
+.rule{display:flex;align-items:center;gap:.8rem;margin:0 0 1.3rem;color:var(--muted);
+  font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;}
+.rule::after{content:"";flex:1;height:1px;background:var(--line);}
+.courses{display:grid;grid-template-columns:repeat(2,1fr);gap:1.3rem;}
+.course{display:flex;flex-direction:column;text-decoration:none;color:inherit;background:var(--panel);
+  border:1px solid var(--line);border-radius:20px;padding:1.6rem 1.6rem 1.4rem;box-shadow:var(--shadow);
+  position:relative;overflow:hidden;transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease;}
+.course::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--c);}
+.course:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--c);}
+.course:focus-visible{outline:2.5px solid var(--c);outline-offset:3px;}
+.course .verb{font-size:.72rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--c);}
+.course h2{font-family:"Iowan Old Style",Palatino,Georgia,serif;font-size:1.5rem;line-height:1.12;margin:.5rem 0 .5rem;}
+.course p{color:var(--muted);font-size:.92rem;margin:0 0 1rem;flex:1;}
+.tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:1rem;}
+.tag{font-size:.7rem;background:var(--cs);color:var(--c);border-radius:999px;padding:.2rem .6rem;font-weight:600;}
+.meta{display:flex;gap:1.1rem;font-size:.76rem;color:var(--muted);margin-bottom:1.1rem;
+  font-variant-numeric:tabular-nums;flex-wrap:wrap;}
+.meta b{color:var(--ink);font-size:1.05rem;font-weight:800;display:block;font-family:Palatino,Georgia,serif;}
+.go{align-self:flex-start;font-weight:700;font-size:.9rem;color:var(--c);border:1.5px solid var(--c);
+  border-radius:999px;padding:.5rem 1.1rem;transition:background .14s ease,color .14s ease;}
+.course:hover .go{background:var(--c);color:#fff;}
+@media (prefers-color-scheme:dark){.course:hover .go{color:#12141a;}}
+:root[data-theme="dark"] .course:hover .go{color:#12141a;}
+.run{--c:var(--accent);--cs:var(--accent-soft);}
+.build{--c:var(--build);--cs:var(--build-soft);}
+.more{grid-column:1 / -1;border:1.5px dashed var(--line);border-radius:20px;padding:1.4rem 1.6rem;
+  color:var(--muted);font-size:.9rem;display:flex;align-items:center;gap:.7rem;background:transparent;}
+.more .plus{font-size:1.4rem;color:var(--muted);line-height:1;}
+.foot{margin-top:3rem;padding-top:1.4rem;border-top:1px solid var(--line);color:var(--muted);font-size:.82rem;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
+.foot a{color:var(--accent);}
+@media (max-width:680px){.courses{grid-template-columns:1fr;}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;}html{scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="brand">Tamoura · Course Library</div>
+    <h1><span class="b">Build</span> with AI.<br><span class="r">Run</span> AI in production.</h1>
+    <p>Two courses for the two halves of the job: shipping software with AI agents as your builder, and operating AI agents as governed systems once they reach production. Practical, incident-driven, and free to read.</p>
+  </header>
+
+  <div class="rule">Courses</div>
+
+  <!-- ── To add a course: copy one <a class="course …"> block, set its verb/title/
+       description/tags/meta/href, and pick a theme class: "build" or "run". ── -->
+  <div class="courses">
+
+    <a class="course build" href="https://tamoura.github.io/system-design-for-vibe-coders/">
+      <span class="verb">Build with AI</span>
+      <h2>System Design for Vibe Coders</h2>
+      <p>Production engineering for people who build with AI agents — including non-coders. Every lesson opens with a real outage, teaches the principle, then shows exactly what to ask your agent and how to verify it without reading code.</p>
+      <div class="tags"><span class="tag">Non-coders welcome</span><span class="tag">Incident-driven</span><span class="tag">EN · العربية</span></div>
+      <div class="meta"><span><b>13</b>modules</span><span><b>69</b>lessons</span><span><b>PDF</b>+ EPUB</span></div>
+      <span class="go">Open course →</span>
+    </a>
+
+    <a class="course run" href="https://tamoura.github.io/AI-agents/">
+      <span class="verb">Run AI in production</span>
+      <h2>Running AI Agents in Production</h2>
+      <p>Build, secure, govern, evaluate, and operate AI agents as digital employees in a regulated bank. A zero-to-hero curriculum backed by a runnable reference framework, a production playbook, and a skills assessment.</p>
+      <div class="tags"><span class="tag">Engineers → Leadership</span><span class="tag">Regulated / banking</span><span class="tag">Hands-on labs</span></div>
+      <div class="meta"><span><b>6</b>levels</span><span><b>28</b>modules</span><span><b>L0–L5</b>gated</span></div>
+      <span class="go">Open course →</span>
+    </a>
+
+    <div class="more"><span class="plus">+</span> More courses coming — this shelf grows.</div>
+
+  </div>
+
+  <div class="foot">
+    <span>Free to read · share the link. Source: <a href="https://github.com/Tamoura">github.com/Tamoura</a></span>
+    <span>Course Library · 2026</span>
+  </div>
+
+</div>
+</body>
+</html>
