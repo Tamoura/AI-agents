@@ -206,7 +206,7 @@ flowchart TD
 | **NCSA / NIA policy** | National information-assurance controls, incident reporting | Observability + audit + incident runbooks |
 | **Sharia governance** (for Islamic finance products) | Sharia-compliance screening of recommendations | `src/tools/compliance/check-sharia.ts`; Sharia board reviews agent policies touching product decisions |
 | **Model risk management** (Basel-style, SR 11-7 as the global reference) | Model inventory, independent validation, ongoing monitoring, documented limitations | §6 evaluation + §9 versioning provide the artifacts |
-| **EU AI Act (as international benchmark)** | Credit-decision AI = high-risk: risk management system, logging, human oversight, accuracy/robustness testing | The full stack in this repo is essentially the high-risk checklist |
+| **EU AI Act (as international benchmark)** | Credit-decision AI = high-risk: risk management system, data governance, logging, human oversight, accuracy/robustness, **fairness/non-discrimination**, technical documentation | Maps closely to the high-risk control set — several controls remain gaps (outbound agent identity §3.1, evals §6, DLP-grade PII §7.3, and fairness testing) |
 
 QDB is a development bank, not a commercial deposit-taker, but QCB supervision and PDPPL still apply, and adopting the high-risk-AI control set positions QDB ahead of where regional regulation is clearly heading.
 
@@ -227,7 +227,7 @@ QDB is a development bank, not a commercial deposit-taker, but QCB supervision a
 
 ## 6. Evaluate
 
-**This is the largest gap between the current framework and production readiness.** The repo has 86 tests covering the *deterministic* machinery (policy enforcement, envelope validation, audit completeness — `tests/governance/`, `tests/unit/`) which is the right foundation, but production agents need evaluation of the *non-deterministic* behavior too.
+**This is the largest gap between the current framework and production readiness.** The repo has a substantial deterministic test suite covering the *deterministic* machinery (policy enforcement, envelope validation, audit completeness, adversarial guardrails — `tests/governance/`, `tests/unit/`) which is the right foundation, but production agents need evaluation of the *non-deterministic* behavior too.
 
 ### 6.1 The evaluation stack (build in this order)
 

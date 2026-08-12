@@ -334,8 +334,8 @@ em { color: inherit; }
 </tr>
 <tr>
 <td><strong>EU AI Act (as international benchmark)</strong></td>
-<td>Credit-decision AI = high-risk: risk management system, logging, human oversight, accuracy/robustness testing</td>
-<td>The full stack in this repo is essentially the high-risk checklist</td>
+<td>Credit-decision AI = high-risk: risk management system, data governance, logging, human oversight, accuracy/robustness, <strong>fairness/non-discrimination</strong>, technical documentation</td>
+<td>Maps closely to the high-risk control set — several controls remain gaps (outbound agent identity §3.1, evals §6, DLP-grade PII §7.3, and fairness testing)</td>
 </tr>
 </tbody></table>
 </div><p>QDB is a development bank, not a commercial deposit-taker, but QCB supervision and PDPPL still apply, and adopting the high-risk-AI control set positions QDB ahead of where regional regulation is clearly heading.</p>
@@ -354,7 +354,7 @@ em { color: inherit; }
 </ol>
 <hr>
 <h2 id="6-evaluate">6. Evaluate<a class="anchor" href="#6-evaluate" aria-label="link to section">#</a></h2>
-<p><strong>This is the largest gap between the current framework and production readiness.</strong> The repo has 86 tests covering the <em>deterministic</em> machinery (policy enforcement, envelope validation, audit completeness — <code>tests/governance/</code>, <code>tests/unit/</code>) which is the right foundation, but production agents need evaluation of the <em>non-deterministic</em> behavior too.</p>
+<p><strong>This is the largest gap between the current framework and production readiness.</strong> The repo has a substantial deterministic test suite covering the <em>deterministic</em> machinery (policy enforcement, envelope validation, audit completeness, adversarial guardrails — <code>tests/governance/</code>, <code>tests/unit/</code>) which is the right foundation, but production agents need evaluation of the <em>non-deterministic</em> behavior too.</p>
 <h3 id="61-the-evaluation-stack-build-in-this-order">6.1 The evaluation stack (build in this order)<a class="anchor" href="#61-the-evaluation-stack-build-in-this-order" aria-label="link to section">#</a></h3>
 <ol>
 <li><strong>Golden datasets per agent.</strong> 50–200 real (anonymized) task examples per agent with expected outcomes, curated by the owner team and refreshed quarterly. For the router: intent → correct target agent. For IT ops: incident text → correct severity + correct playbook. These are the agent&#39;s &quot;performance objectives.&quot;</li>

@@ -19,6 +19,8 @@ Companion to `PRODUCTION-PLAYBOOK.md` (the *what and why*); this document is the
 | **L4** | Regulated-AI Specialist | Security, risk, compliance + senior engineers | 4–6 weeks | Threat model + red-team report, or governance templates adopted |
 | **L5** | Hero / Program Lead | Tech leads, chief architect | ongoing | Capstone: one real process through the full lifecycle |
 
+> **Two different "L" scales — don't confuse them.** *Curriculum levels* are **L0–L5** (learner progression, this table). *Autonomy levels* are a separate **L0–L3** scale (how much an agent may act without a human — shadow / notify / approve / autonomous; Playbook §4.2). They are unrelated axes. Throughout, an autonomy level is always written as **"Autonomy L2"** and a curriculum level as **"Curriculum L2"** (or just "L2 gate") wherever both could be meant.
+
 ```mermaid
 flowchart LR
     L0["L0 Literate — everyone"] --> L1["L1 Builder"]
@@ -232,7 +234,9 @@ Audience: developers, QA. Duration: 3–4 weeks (~25–35 hours). Prerequisite: 
 - Retrieval and data classification: the index inherits the classification of its most sensitive document unless you filter at query time by user/agent clearance — a security topic revisited at L4.
 - When RAG is the wrong tool: computations, live data (use a query tool), tiny corpora (put it in the prompt).
 
-**Resources:** Anthropic docs RAG guidance + contextual-retrieval writeup; any one vector store's quickstart (choose what IT can actually host); h9-tec "AI Engineering Reference" (github.com/h9-tec/ai-system-design) RAG sections — carries the measured case for the full stack: contextual retrieval + hybrid search + reranking cuts retrieval failure from 5.7% to 1.9%.
+**Retrieval-quality metrics (name and measure them):** recall@k and MRR/nDCG for retrieval; faithfulness (is the answer grounded in retrieved context?) and answer-relevance for generation; add a RAG slice to the golden set (M3.1) with per-dialect Arabic cases. The measured case for the full stack — contextual retrieval + hybrid search + reranking cutting retrieval failure from 5.7% to 1.9% — is from **Anthropic's "Contextual Retrieval" post** (the primary source; cite it directly).
+
+**Resources:** Anthropic docs RAG guidance + the Contextual Retrieval writeup (source of the numbers above); any one vector store's quickstart (choose what IT can actually host); h9-tec "AI Engineering Reference" (github.com/h9-tec/ai-system-design) as a supplementary field reference.
 
 **Lab:** index this repo's `docs/` folder; build `ask-the-playbook`: answers must cite section numbers; questions with no grounded answer must say so rather than improvise. Test with 5 answerable + 3 unanswerable questions.
 
@@ -318,8 +322,10 @@ flowchart LR
 **Topics:**
 - The three stores and their lifecycles: **turn context** (the prompt — rebuilt every call), **session state** (task-scoped, TTL'd — `src/core/state-store.ts`), **long-term memory** (cross-session; opt-in, classified, auditable — `src/core/memory.ts`).
 - What belongs where; the banking default: *less memory is more* — persist facts only with a policy reason, classification tag, and expiry. `context_policy` in every policy YAML (max session hours, clear-on-completion, max tokens) is the enforcement.
+- **Long-term memory engineering (the part that earns its "first-class layer" billing).** Memory types — *episodic* (what happened, per user/case), *semantic* (durable facts/preferences), *procedural* (learned how-to). The two operations that make or break it: **retrieval** (fetch only what's relevant to this turn — memory is a retrieval problem, so recall/precision apply here too) and **consolidation** (summarize/merge/expire so memory doesn't grow unbounded or drift). Each write carries provenance + classification + TTL.
+- **Memory-specific evals:** does the agent retrieve the *right* memory (not stale/wrong-user)? does consolidation preserve meaning? and a **memory-poisoning regression** — a planted malicious "fact" must not survive into a later decision. These run in CI alongside the behavior evals (M3.1).
 - Context engineering: what to include per call (task, relevant state, retrieved docs, tool results), what to summarize, what to drop; compaction strategies for long sessions.
-- Memory poisoning preview (deep dive at L4): anything written to memory is future prompt input — attacker-influenced memory is persistent injection.
+- Memory poisoning (deep dive at L4): anything written to memory is future prompt input — attacker-influenced memory is persistent injection; the regression test above is the guardrail.
 
 **Lab:** add a session-scoped "working notes" capability to the PMO agent using the state store with a 4-hour TTL; prove notes survive across turns within a session, are destroyed after completion, and never exceed the classification ceiling.
 
@@ -331,8 +337,8 @@ flowchart LR
 - The envelope doctrine (Playbook §4.1): every inter-agent message is a typed, immutable, schema-validated envelope with `correlationId`/`parentMessageId` (causal chain), `dataClassification` + `autonomyLevel` + `requiresApproval` (authority travels with the message), and `ttlSeconds` (no stale instructions). Read `src/core/message-envelope.ts` + `src/core/message-bus.ts`.
 - Why free-text agent-to-agent handoffs are an anti-pattern: unauditable, injectable, and lossy.
 - Classification laundering: the envelope makes it structurally hard for RESTRICTED data to exit through a PUBLIC-cleared agent — trace how.
-- **MCP (Model Context Protocol):** servers, tools, resources, prompts. Now the settled industry standard for the agent↔tool layer — created by Anthropic, governed since December 2025 by the Linux Foundation's Agentic AI Foundation, and supported by every major framework, which makes MCP-compliant tools portable across stacks. What MCP does and doesn't solve: it carries *capability*, not *authority* — your envelope/policy layer still decides *whether*.
-- **A2A (Agent2Agent):** the agent↔agent protocol — v1.0 released under Linux Foundation governance in April 2026, 150+ member organizations, production support in Azure AI Foundry, Amazon Bedrock AgentCore, and Copilot Studio. Key v1.0 concepts: Agent Cards (now cryptographically signable — portable agent identity), task lifecycle, and the emerging Agent Payments Protocol (AP2). The consensus stack: **MCP vertical (agent→tool), A2A horizontal (agent→agent).**
+- **MCP (Model Context Protocol):** servers, tools, resources, prompts. The de-facto standard for the agent↔tool layer as of mid-2026 — created by Anthropic and moving toward neutral foundation governance, supported by every major framework, which makes MCP-compliant tools portable across stacks. *(Governance body and dates evolve — verify current status before citing specifics to a regulator.)* What MCP does and doesn't solve: it carries *capability*, not *authority* — your envelope/policy layer still decides *whether*.
+- **A2A (Agent2Agent):** the agent↔agent protocol — originated at Google, contributed to the Linux Foundation, with v1.0 and broad cloud support emerging through 2026 *(re-verify version, dates, and adopters — this space moves fast)*. Key concepts: Agent Cards (cryptographically signable — portable agent identity), task lifecycle, and the emerging Agent Payments Protocol (AP2). The consensus stack: **MCP vertical (agent→tool), A2A horizontal (agent→agent).**
 - The posture for a bank, unchanged by the standards wave: adopt MCP/A2A at the edges (external tools; agents crossing org or vendor boundaries), keep the governance envelope as the internal standard — open protocols carry the message, your envelope carries the authority context. Signed Agent Cards strengthen, but do not replace, per-agent workload identity (Module 4.2).
 - Message bus operational concerns: delivery semantics, dead-letter queues, replay for audit.
 
@@ -535,11 +541,12 @@ Audience: security engineers and risk/compliance (deep on their own track, surve
   - **LLM01 Prompt injection** — direct (user input) and *indirect* (instructions hidden in retrieved documents, emails, web pages, tool results). Indirect is the one that matters for agents: any content source an agent reads is an attack surface.
   - **LLM06 Excessive agency** — over-broad tools, over-high autonomy, under-specified scope; the anti-control is everything in Playbook §3.2.
   - **LLM02 Sensitive information disclosure** — exfiltration through model outputs, memory, or logs.
-  - Insecure output handling (agent output consumed by downstream systems = injection into *them*), supply chain (model/dataset/dependency provenance), plus the rest of the ten in survey.
-- **OWASP Top 10 for Agentic Applications (2026)** — published December 2025 by the OWASP GenAI Security Project (ASI01–ASI10), the agentic companion to the LLM Top 10. Its risk domains are this module's syllabus: planning/goal manipulation, tool misuse, agent identity, supply chain, code execution, memory poisoning, inter-agent communication, cascading failures, human–agent trust exploitation, and rogue agents. Lab discipline: map each ASI item to the framework control that addresses it — regulators increasingly accept this mapping as technical evidence (it aligns with EU AI Act Art. 9 risk management, Art. 14 human oversight, Art. 15 robustness).
+  - Improper output handling (LLM05 — agent output consumed by downstream systems = injection into *them*), supply chain (model/dataset/dependency provenance), plus the rest of the ten in survey.
+- **OWASP GenAI Security Project — agentic guidance** — the OWASP Agentic Security Initiative's threat and mitigation guidance (the agentic companion to the LLM Top 10; confirm the exact current artifact name/status before citing it as a ratified "Top 10"). Its risk domains are this module's syllabus: planning/goal manipulation, tool misuse, agent identity, supply chain, code execution, memory poisoning, inter-agent communication, cascading failures, human–agent trust exploitation, and rogue agents. Lab discipline: map each risk to the framework control that addresses it — this mapping can support an EU-AI-Act-style evidence package (Art. 9 risk management, Art. 14 human oversight, Art. 15 robustness), but present it as your own analysis, not as regulator-endorsed.
 - Agent-specific attack chains: injection → tool abuse → exfiltration; memory poisoning (persistent injection via stored memory); cross-agent laundering (using a high-clearance agent as a confused deputy via inter-agent messages); approval-fatigue exploitation (flooding L2 queues to slip one bad action through).
 - The defense doctrine: injection is not preventable, it is *containable* — bounded blast radius (allowlist × classification ceiling × autonomy ceiling) is the control that holds when all filters fail.
 - **The lethal-trifecta design test** (Willison): an agent that combines (1) access to private data, (2) exposure to untrusted content, and (3) the ability to communicate externally is structurally exploitable — no filter fixes it; the architecture must break at least one leg. Apply it in every agent design review: name the missing leg, and point to the code (denied tool, classification ceiling) that guarantees it stays missing.
+- **Likelihood-reduction patterns (complement containment, never replace it).** Containment bounds the damage when injection succeeds; these lower the odds it succeeds at all: **spotlighting/delimiting** (mark and fence untrusted content so the model treats it as data, not instructions); **dual-LLM / quarantined-LLM** (an unprivileged model processes untrusted content and returns only structured data to the privileged one); **capability-based designs** (e.g., CaMeL — the model emits a plan that a deterministic layer executes against explicit capabilities); and **model-based injection classifiers** on inputs and tool results. A 2026 course teaches both halves: make injection *less likely* (these) and *bounded when it happens* (blast radius).
 
 What containment looks like when the filters have already failed:
 
@@ -621,10 +628,28 @@ flowchart LR
 
 **Lab (governance track):** write the complete evidence-pack **template** and fill it in for promoting the IT ops agent's "ticket triage" category from L2 to L3, using simulate/eval data where real data doesn't exist yet, marking every synthetic datum. This template becomes the official one.
 
+### Module 4.7 — Fairness, Bias & Decision-Level Explainability (≈5h) — **required for any customer- or credit-facing agent**
+
+**Objectives:** test agents that touch people (lending, onboarding, pricing) for discriminatory behavior, and make individual decisions explainable — the two obligations a QCB / fair-lending / EU-AI-Act (Art. 10 data governance, Art. 13 transparency) examiner probes first for a bank that touches credit.
+
+**Topics:**
+- Why this is separate from security: a perfectly secure, well-governed agent can still be *unfair*. Bias is a distinct failure class with its own tests.
+- **Protected attributes and proxies.** Direct attributes (nationality, gender, age) are the obvious risk; the harder one is *proxy discrimination* — neighborhood, name, employer, device, language of application standing in for a protected class. An agent that never sees nationality can still discriminate through its correlates.
+- **Disparate-impact metrics** (name and compute them): selection-rate ratio / the four-fifths rule, demographic parity difference, equal-opportunity and equalized-odds gaps, calibration-by-group. Know what each measures and their tensions (you cannot satisfy all simultaneously).
+- **Subgroup eval slices.** Extend the golden set (M3.1) with slices by protected group and by proxy; a model can pass aggregate accuracy and fail a subgroup badly. Bias tests run in CI like any other eval.
+- **Decision-level explainability ≠ reconstruction.** The audit trail reconstructs *what happened*; a credit decision also needs *why* — reason codes / adverse-action reasons a human officer and the applicant can understand (the "principal reasons" a denial rests on). This is a regulatory requirement for credit, distinct from the observability audit trail (M3.5).
+- **Human-decider boundary.** For credit and other high-impact decisions the agent is decision-*support*: it assembles, checks constraints, drafts reason codes; a human decides and owns the adverse-action notice. Fairness testing gates whether the *support* is trustworthy.
+- Documentation: a model/agent fairness card (intended use, groups tested, metrics, known limitations) as a governance artifact.
+
+**Resources:** EU AI Act Art. 10 & Art. 13; local fair-lending expectations (compliance to supply); NIST AI RMF "Manage" + the bias-in-AI guidance (NIST SP 1270); Aequitas / Fairlearn as reference toolkits for the metrics.
+
+**Lab:** build a fairness eval slice against `policies/credit-assessment.yaml`'s decision-support path — a synthetic applicant set stratified by a protected group and one proxy; compute selection-rate ratio and an equal-opportunity gap; wire it into `evals/` so a bias regression fails CI. Then have the agent emit structured **reason codes** for a sample of decisions and confirm a non-technical reviewer can read the "why." Deliver a one-page fairness card for the credit path.
+
 ### L4 Gate
 
 - **Engineering track:** Module 4.1 chain analysis + 4.2 both labs + 4.3 red-team report delivered and reviewed; adversarial eval cases merged.
 - **Governance track:** committee charter, validation checklist, regulatory mapping, and evidence-pack template formally adopted by the (proto-)AI Governance Committee.
+- **Fairness (required for anyone on a customer/credit-facing agent):** Module 4.7 lab delivered — a bias eval slice gating CI against the credit-support path, reason-code explainability demonstrated, and a fairness card filed.
 - **Joint:** the Module 3.6 tabletop re-run with both tracks present, incident-to-notification path walked end-to-end.
 
 ---
@@ -776,7 +801,7 @@ Targets: every agent owner team contains ≥1 person at 2+ in evals, HITL, and o
 
 Dated facts the curriculum's judgments rest on — re-verify at the annual content review; everything here churns faster than the principles do.
 
-- **Protocols:** MCP created by Anthropic, governed by the Linux Foundation's Agentic AI Foundation since December 2025; every major framework speaks it — the agent↔tool layer is settled. A2A v1.0 released April 2026 under Linux Foundation governance (150+ member organizations; production support in Azure AI Foundry, Amazon Bedrock AgentCore, Copilot Studio); brings signed Agent Cards and the emerging Agent Payments Protocol (AP2). Consensus stack: MCP vertical, A2A horizontal.
+- **Protocols (verify specifics before citing to a regulator):** MCP — created by Anthropic, moving toward neutral foundation governance; the de-facto agent↔tool standard, spoken by every major framework. A2A — originated at Google, contributed to the Linux Foundation; v1.0 and broad cloud adoption emerging through 2026, bringing signed Agent Cards and the emerging Agent Payments Protocol (AP2). Consensus stack: MCP vertical, A2A horizontal. *(Governing bodies, versions, and dates in this space change fast — re-verify at each content review.)*
 - **Frameworks (consolidated to a shortlist):** Claude Agent SDK (hierarchical subagents), OpenAI Agents SDK (evolved from Swarm), Google ADK, LangGraph 1.0, Microsoft Agent Framework 1.0 (AutoGen + Semantic Kernel merged, GA April 2026). Provider-native vs. cross-provider is the real axis of choice; MCP convergence makes tools portable either way.
 - **Patterns:** ReAct / Plan-and-Execute / Reflexion / ReWOO / Tree-of-Thoughts is the shared reasoning-loop vocabulary; memory and orchestration are treated as first-class, separable architectural layers.
 - **Security:** OWASP Top 10 for Agentic Applications 2026 (ASI01–ASI10) published December 2025 — the agentic companion to the LLM Top 10; increasingly used as the evidence skeleton for AI-Act-style obligations.

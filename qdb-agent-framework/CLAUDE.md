@@ -7,7 +7,7 @@ Multi-agent AI framework for Qatar Development Bank. Regulated financial institu
 ```bash
 cd qdb-agent-framework
 npm install
-npm test          # Run all tests (86 tests, 10 files)
+npm test          # Run all unit + governance tests
 npm run dev       # Start development server
 npm run simulate  # Run end-to-end workflow simulation
 ```
