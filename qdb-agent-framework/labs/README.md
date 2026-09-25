@@ -12,9 +12,11 @@ personal branch (`learn/<name>/<level>`); the gate is a reviewed, passing artifa
 | Add a tool + allowlist-denial test (**L1 gate**) | M1.3 | `src/tools/`, `src/core/tool-registry.ts`, `tests/` |
 | Schema-validated extractor with retry | M1.4 | `src/core/structured-output.ts` |
 | RAG with citations + honest refusal | M1.5 | `src/core/retrieval.ts` (reference impl to extend) |
+| Fault injection: 429s, hanging tool, context overflow | M1.6 | `src/core/tool-registry.ts` (`TOOL_TIMEOUT`), `src/core/llm-router.ts` |
 | Build the `procurement` specialist agent (**L2 gate**) | M2.1–2.5 | `src/agents/`, `policies/`, `src/agents/router/` |
 | Checkpointed 3-node graph | M2.2 | `src/core/graph-engine.ts` |
 | Approval round-trip (approve + reject) | M2.5 | `src/governance/escalation.ts`, `src/api/routes/admin.ts` |
+| Anti-pattern CI guard | M2.7 | `tests/governance/`, `policies/` |
 | Golden dataset + adversarial suite in CI (**L3 flagship**) | M3.1–3.2 | `evals/` (extend the datasets + runner) |
 | Jaeger traces + per-agent dashboard | M3.5 | `src/core/observability.ts`, `docker-compose.yml` |
 | Reconstruction drill | M3.5 | audit route + `npm run simulate` |
@@ -22,6 +24,7 @@ personal branch (`learn/<name>/<level>`); the gate is a reviewed, passing artifa
 | Threat model + red-team | M4.1–4.3 | `src/core/guardrails.ts`, `tests/governance/adversarial.test.ts` |
 | Strengthen a guardrail (Arabic PII) | M4.2 | `src/core/guardrails.ts` (`normalizeForDetection`) |
 | Governance artifacts adopted | M4.4–4.6 | `docs/templates/` (charter, evidence pack, validation checklist) |
+| Portfolio scorecard · operating-model RACI · model/vendor exit plan (capstone inputs) | M5.1–5.3 | `docs/templates/` (new templates), `policies/`, `src/core/llm-router.ts` |
 
 ## Starter: the L1 gate
 
