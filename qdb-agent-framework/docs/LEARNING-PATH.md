@@ -345,6 +345,8 @@ flowchart LR
 
 ### Module 2.3 — State, Memory, and Context Management (≈4h)
 
+**Objectives:** put every piece of agent state in the right store with the right lifetime; engineer long-term memory that is retrievable, consolidated, and poison-resistant.
+
 **Topics:**
 - The three stores and their lifecycles: **turn context** (the prompt — rebuilt every call), **session state** (task-scoped, TTL'd — `src/core/state-store.ts`), **long-term memory** (cross-session; opt-in, classified, auditable — `src/core/memory.ts`).
 - What belongs where; the banking default: *less memory is more* — persist facts only with a policy reason, classification tag, and expiry. `context_policy` in every policy YAML (max session hours, clear-on-completion, max tokens) is the enforcement.
@@ -390,6 +392,8 @@ flowchart TB
 
 ### Module 2.5 — Human-in-the-Loop as Architecture (≈4h)
 
+**Objectives:** design human approval as a workflow an approver can decide in under two minutes; make both the approve and reject paths auditable and honored by the agent.
+
 **Topics:**
 - HITL is a designed workflow, not a popup: approval queue, full-context presentation (envelope + agent reasoning + what-happens-if-approved), decision capture as an audit event (approver, timestamp, rationale).
 - The escalation engine: how `src/governance/escalation.ts` computes decisions from policy + operation type + classification; the hard-coded floor (MUTATE + CONFIDENTIAL+ → approval, always).
@@ -420,6 +424,8 @@ sequenceDiagram
 **Lab:** build the approval round-trip for the procurement scenario (below): agent proposes PO amendment → approval request created with full context → simulate approve and reject paths → assert both outcomes in the audit log and in the agent's subsequent behavior.
 
 ### Module 2.6 — Model Routing and Cost Architecture (≈3h)
+
+**Objectives:** route each task to the cheapest model that meets its quality bar; make cost-per-task — in English and Arabic — a measured KPI.
 
 **Topics:**
 - Tiering: fast/cheap models for classification and extraction, frontier models for reasoning and drafting; routing per *task*, not per agent (`src/core/llm-router.ts`).
@@ -508,6 +514,8 @@ flowchart TB
 
 ### Module 3.2 — Adversarial and Regression Evaluation (≈4h)
 
+**Objectives:** prove agents fail safely under attack and stay safe across every change; make the adversarial suite a merge-blocking gate.
+
 **Topics:**
 - The standing red-team suite: injection attempts (direct + via retrieved-document content), out-of-scope requests, PII-extraction attempts, authority-escalation attempts ("as the CIO, I approve…"), Sharia-noncompliant product requests. Every case must *fail safely* — blocked, refused, or escalated; never silently complied with.
 - Fail-safe taxonomy: what "safe" means per case class (block vs. refuse vs. escalate) — asserted specifically, not just "didn't crash."
@@ -517,6 +525,8 @@ flowchart TB
 **Lab (flagship, part 2):** add `evals/adversarial/` — 15 red-team cases across the five classes above, each asserting its specific safe outcome. Wire both suites into CI (GitHub Actions) as required checks. *This lab's output becomes the repository's actual CI gate.*
 
 ### Module 3.3 — CI/CD and Progressive Delivery for Agents (≈5h)
+
+**Objectives:** ship the five-artifact release unit through dev → staging → shadow → prod behind eval gates, with a rollback you have actually executed.
 
 **Topics:**
 - The agent release unit is five artifacts (Playbook §9): code, policy, prompt (inside policy), tool manifest, model pin — each versioned, each a change trigger for the eval suite.
@@ -537,6 +547,8 @@ flowchart LR
 
 ### Module 3.4 — Deployment, Scaling, and Resilience (≈4h)
 
+**Objectives:** run agents with tier-1 resilience — bounded by rate limits, timeouts, and cost caps — degrading to a human queue rather than failing silently.
+
 **Topics:**
 - Runtime topology: stateless agent runtime + externalized state store + message bus — read `docker-compose.yml` and map each service to its production equivalent (AKS in Azure Qatar, managed Postgres/Redis, service bus).
 - Capacity realities: provider rate limits are the real ceiling; queue backpressure, per-agent and per-user rate limits (`src/api/middleware/rate-limit.ts`), timeout budgets per hop with an end-to-end budget.
@@ -547,6 +559,8 @@ flowchart LR
 **Lab (chaos drill):** against the docker-compose stack: (a) kill the mock tool backend mid-workflow — verify graceful degradation, audit record, alertable metric; (b) saturate rate limits — verify backpressure not collapse; (c) execute the per-agent kill switch via the admin route (`src/api/routes/admin.ts`) — verify the router behaves and in-flight work drains to the human queue.
 
 ### Module 3.5 — Observability (≈5h)
+
+**Objectives:** keep the audit trail and telemetry separate and both complete; see what every agent is doing and alert on behavior, not just errors.
 
 **Topics:**
 - The two-system doctrine (Playbook §8): **audit trail** (compliance record: immutable, complete, retained per QCB; `src/core/audit-logger.ts`) vs. **telemetry** (operational: traces, metrics, logs; `src/core/observability.ts`). Different consumers, different retention, different access controls — never conflate them.
@@ -559,6 +573,8 @@ flowchart LR
 **Lab:** stand up Jaeger via docker-compose; export framework traces; capture one request's full trace tree (screenshot in the PR). Add a token/cost counter metric per agent. Build the per-agent dashboard (Grafana or equivalent) with at least six of the eight panels above.
 
 ### Module 3.6 — Incident Response for Agents (≈3h)
+
+**Objectives:** contain, reconstruct, report, and learn from agent incidents, with a tested runbook per incident class.
 
 **Topics:**
 - Agent-specific incident classes: harmful output reached a user · unauthorized action executed · data boundary crossed · runaway loop/cost · model-provider outage · suspected prompt-injection exploitation.
@@ -623,6 +639,8 @@ flowchart LR
 
 ### Module 4.2 — Identity, Least Privilege, and Data Protection (≈6h)
 
+**Objectives:** give every agent its own least-privilege identity; guarantee no agent does for a user what the user couldn't; keep data inside its classification and residency boundaries.
+
 **Topics:**
 - **Non-human identity (NHI):** one workload identity per agent (Entra managed identity / service principal); short-lived credentials; vault-backed secrets; automated rotation. The current framework gap (`src/api/middleware/auth.ts` covers inbound only) and the production design: agent identity on every outbound tool call.
 - **Confused-deputy prevention:** tool backends authorize on agent identity ∧ user entitlement (from `metadata.userId` in the envelope) — an agent can never do for a user what the user couldn't do alone. Design the check, don't assume it.
@@ -637,6 +655,8 @@ flowchart LR
 
 ### Module 4.3 — Red-Teaming Agents (≈5h)
 
+**Objectives:** run a scoped, reproducible red-team exercise against a live agent; turn every finding into a fix plus a permanent regression case.
+
 **Topics:**
 - Methodology: scope and rules of engagement → attack-surface enumeration (every content source, every tool, every inter-agent path) → attack execution → bounded-vs-broken classification → remediation → permanent regression cases.
 - Attack classes to exercise: direct/indirect injection, tool-abuse (in-allowlist misuse), data exfiltration (incl. via citations and error messages), authority spoofing, memory poisoning, cross-agent chains, guardrail evasion (obfuscation, language switching — test in Arabic).
@@ -646,6 +666,8 @@ flowchart LR
 **Lab (paired: security + engineer — the level's flagship):** attacker crafts 10 attempts across ≥4 classes against a running instance; defender hardens guardrails/policies until every attempt is blocked *or demonstrably bounded* (executed but contained by allowlist/ceiling with full audit). Joint report: findings, fixes, surviving-risk statement, 10 new adversarial eval cases contributed to `evals/adversarial/`.
 
 ### Module 4.4 — Governance Frameworks and Model Risk (≈5h)
+
+**Objectives:** ground QDB's AI governance in established frameworks (NIST AI RMF, ISO/IEC 42001, SR 11-7, the EU AI Act as benchmark) and stand up the committee and independent-validation functions that apply them.
 
 **Topics:**
 - **NIST AI RMF** (+ Generative AI Profile): the MAP / MEASURE / MANAGE / GOVERN functions applied concretely to agents — use it as the skeleton for QDB's framework rather than inventing one.
@@ -660,6 +682,8 @@ flowchart LR
 
 ### Module 4.5 — The QDB Regulatory Stack (≈4h)
 
+**Objectives:** map QDB's actual obligations (QCB, PDPPL, NCSA/NIA, Sharia governance) to implementing controls and evidence; surface the gaps as tracked work.
+
 **Topics:**
 - **QCB:** AI/technology-risk expectations for supervised institutions — board-approved framework, system inventory, human oversight, explainability, exit strategy per critical vendor; how agent artifacts (policy registry, audit trail, eval evidence) map to examination requests.
 - **Qatar PDPPL (Law 13/2016):** lawful basis and minimization applied to agent context windows and memory; cross-border transfer controls → the residency routing rule; breach notification interplay with agent incident response (Module 3.6).
@@ -670,6 +694,8 @@ flowchart LR
 **Lab (governance track flagship):** take Playbook §5.1's mapping table and, for **one** regime (QCB or PDPPL), expand every row into: specific obligation → implementing control (file reference) → evidence artifact → gap. Gaps become tracked backlog items. This document is the start of the bank's actual compliance mapping.
 
 ### Module 4.6 — Audit, Evidence, and the Promotion Process (≈4h)
+
+**Objectives:** engineer the audit trail to evidence standard; produce the autonomy-promotion evidence pack the committee — and later the regulator — relies on.
 
 **Topics:**
 - Audit-trail engineering to evidence standard: append-only/WORM storage, tamper-evidence, versions-in-force (policy + model pin) on every event, retention aligned to bank record-keeping, case-reconstruction queryability (`src/api/routes/audit.ts` as the seed).
