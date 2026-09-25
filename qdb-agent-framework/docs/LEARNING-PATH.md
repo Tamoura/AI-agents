@@ -430,11 +430,36 @@ sequenceDiagram
 
 **Lab:** add a routing rule sending intent classification to a small model and agent reasoning to a frontier model; measure and report cost-per-simulated-task before and after, running both English and Arabic test utterances.
 
-### Module 2.7 — Anti-Patterns Clinic (≈2h, cohort session)
+### Module 2.7 — Anti-Patterns Clinic (≈3h: 2h cohort session + 1h lab)
+
+**Objectives:** recognize the recurring agent-architecture anti-patterns on sight; name the failure each causes in a bank (audit gap, blast radius, cost); point to the control that prevents it — and automate one of those controls.
 
 The catalog, with real examples dissected: the god agent · agent sprawl (agents as org-chart cosplay) · free-text handoffs · LLM-enforced permissions ("the prompt says it won't") · unbounded loops without turn/cost caps · memory as a junk drawer · RAG-everything (retrieval where a SQL tool belongs) · demo-driven architecture (patterns chosen for wow, not audit) · silent truncation · fallback-to-guessing on low confidence.
 
-**Format:** each learner brings one anti-pattern spotted in the wild (or in their own L1 work); the cohort names the fix.
+**Topics — the catalog, with the fix and where the framework shows it:**
+
+| Anti-pattern | What goes wrong | The fix | Where to look |
+|---|---|---|---|
+| God agent | One compromise reaches every tool | Split on real boundaries (M2.1) | per-agent `allowed_tools` / `denied_tools` in `policies/*.yaml` |
+| Agent sprawl | Agents mirror the org chart, not clearances or owners | Merge; split only on clearance, owner, autonomy, domain | the router + a few specialists in `src/agents/` |
+| Free-text handoffs | Unauditable, injectable, lossy | Typed, validated envelope | `src/core/message-envelope.ts` |
+| LLM-enforced permissions | The prompt "forbids" what the code allows | Enforce in the harness | `system_prompt` vs. `denied_tools` in `policies/it-operations.yaml`; `TOOL_UNAUTHORIZED` from `src/core/tool-registry.ts` |
+| Unbounded loops | Runaway cost, denial-of-wallet | Step caps + token budgets | `maxSteps` in `src/core/graph-engine.ts` |
+| Memory as a junk drawer | Stale, over-classified, poisonable state | Reason + classification + TTL | `context_policy` in every policy; `src/core/memory.ts` |
+| RAG-everything | Fuzzy answers to exact questions | A typed query tool for live/structured data | `src/tools/data/query-power-bi.ts` vs. `src/core/retrieval.ts` |
+| Demo-driven architecture | Patterns chosen for wow, not audit | Lowest rung that works (M2.1 ladder) | your M2.1 lab justifications |
+| Silent truncation | Decisions made on half the context | Compact with a log entry or fail loudly | M1.6 |
+| Fallback-to-guessing | A confident wrong route | Ask or escalate below a threshold | the `confidence < 0.2` path in `src/agents/router/router-agent.ts` |
+
+**Format (facilitated by the chief architect or an L3+):**
+- *Pre-work:* each learner brings one anti-pattern spotted in the wild (or in their own L1 work) as a short, anonymized excerpt — code, policy YAML, or design sketch.
+- *Specimen rounds (60 min):* the presenter shows the excerpt without naming it; the cohort names the anti-pattern, the failure it would cause here, and the fix. The facilitator ties each to the catalog row above.
+- *Red pen (30 min):* in pairs, mark up a deliberately flawed policy file the facilitator seeds with planted anti-patterns (e.g. a PMO agent allowed `qdb.data.query_core_banking`, a restriction that exists only in `system_prompt`, `clear_context_on_completion: false`). Score = planted flaws found.
+- *Close (30 min):* recap the catalog; each learner picks the anti-pattern they will guard against in the lab.
+
+**Lab (≈1h, after the session):** turn one anti-pattern into an automated guard that fails CI when it comes back — for example a test in `tests/governance/` that loads every file in `policies/` and asserts no tool appears in both `allowed_tools` and `denied_tools`, or that `allowed_tools` stays under an agreed cap (a god-agent tripwire), or that `clear_context_on_completion` is true; or an adversarial case in `evals/datasets/adversarial.jsonl`.
+
+*Done when:* the guard is merged to the cohort branch, shown failing against the facilitator's flawed policy file and passing on `policies/`, and its row (anti-pattern → guard → file) is added to the cohort's shared catalog.
 
 ### L2 Gate (two artifacts, reviewed by the chief architect)
 
