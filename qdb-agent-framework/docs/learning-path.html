@@ -416,8 +416,7 @@ em { color: inherit; }
 <li>Read <code>src/core/structured-output.ts</code> — the framework&#39;s implementation of exactly this pattern.</li>
 <li>Reading it critically: <code>StructuredOutputEngine.generate()</code> feeds the formatted Zod issues back into the next prompt and, after <code>maxRetries + 1</code> attempts (default: 2 retries), returns <code>Err</code> with <code>ErrorCodes.INTERNAL_ERROR</code>. The engine <em>stops</em>; routing that failure to a human queue is the <strong>caller&#39;s</strong> job — a hard fail nobody handles is just a silent drop. Note too that <code>extractJson</code> will pull the first <code>{…}</code> out of surrounding prose: convenient, and one more reason the schema must be strict.</li>
 <li>Unknown fields: Zod object schemas <em>strip</em> unrecognized keys by default. That is a silent data decision — use <code>.strict()</code> when a field the model invented should be a failure, not a discard.</li>
-<li>Provider-side help: forcing output through a tool schema (tool use with a forced tool choice) or a provider JSON mode lowers parse-failure rates, but it validates <em>shape</em>, not business meaning — your schema check stays.</li>
-<li>Know which model you are validating: <code>CLASSIFICATION_RULE</code> in <code>src/core/llm-router.ts</code> matches any <code>responseFormat: &quot;json&quot;</code> request, and the engine sets exactly that — so, where the rule is registered, structured calls route to the small model.</li>
+<li>Provider-side help: forcing output through a tool schema (tool use with a forced tool choice) or a provider JSON mode lowers parse-failure rates, but it validates <em>shape</em>, not business meaning — your schema check stays. And know which model you are validating: <code>CLASSIFICATION_RULE</code> in <code>src/core/llm-router.ts</code> matches any <code>responseFormat: &quot;json&quot;</code> request — which the engine always sets.</li>
 </ul>
 <p><strong>Resources:</strong> Anthropic tool-use guide (the sections on JSON output via tool schemas); Zod documentation (object schemas, <code>.strict()</code>, <code>safeParse</code>); <code>src/core/structured-output.ts</code> line-by-line.</p>
 <p><strong>Lab:</strong> free-text loan-inquiry email → typed <code>{applicant_type, sector, amount_qar, purpose, missing_fields[]}</code>. Schema must reject invalid enums; prove the retry path with a deliberately hostile input; prove the hard-fail path.</p>
@@ -554,8 +553,7 @@ em { color: inherit; }
 <p><strong>Lab:</strong> add a routing rule sending intent classification to a small model and agent reasoning to a frontier model; measure and report cost-per-simulated-task before and after, running both English and Arabic test utterances.</p>
 <h3 id="module-27-anti-patterns-clinic-3h-2h-cohort-session-1h-lab">Module 2.7 — Anti-Patterns Clinic (≈3h: 2h cohort session + 1h lab)<a class="anchor" href="#module-27-anti-patterns-clinic-3h-2h-cohort-session-1h-lab" aria-label="link to section">#</a></h3>
 <p><strong>Objectives:</strong> recognize the recurring agent-architecture anti-patterns on sight; name the failure each causes in a bank (audit gap, blast radius, cost); point to the control that prevents it — and automate one of those controls.</p>
-<p>The catalog, with real examples dissected: the god agent · agent sprawl (agents as org-chart cosplay) · free-text handoffs · LLM-enforced permissions (&quot;the prompt says it won&#39;t&quot;) · unbounded loops without turn/cost caps · memory as a junk drawer · RAG-everything (retrieval where a SQL tool belongs) · demo-driven architecture (patterns chosen for wow, not audit) · silent truncation · fallback-to-guessing on low confidence.</p>
-<p><strong>Topics — the catalog, with the fix and where the framework shows it:</strong></p>
+<p><strong>Topics — the catalog, dissected with real examples: the fix, and where the framework shows it:</strong></p>
 <div class="table-wrap"><table>
 <thead>
 <tr>
@@ -572,7 +570,7 @@ em { color: inherit; }
 <td>per-agent <code>allowed_tools</code> / <code>denied_tools</code> in <code>policies/*.yaml</code></td>
 </tr>
 <tr>
-<td>Agent sprawl</td>
+<td>Agent sprawl (org-chart cosplay)</td>
 <td>Agents mirror the org chart, not clearances or owners</td>
 <td>Merge; split only on clearance, owner, autonomy, domain</td>
 <td>the router + a few specialists in <code>src/agents/</code></td>
@@ -584,7 +582,7 @@ em { color: inherit; }
 <td><code>src/core/message-envelope.ts</code></td>
 </tr>
 <tr>
-<td>LLM-enforced permissions</td>
+<td>LLM-enforced permissions (&quot;the prompt says it won&#39;t&quot;)</td>
 <td>The prompt &quot;forbids&quot; what the code allows</td>
 <td>Enforce in the harness</td>
 <td><code>system_prompt</code> vs. <code>denied_tools</code> in <code>policies/it-operations.yaml</code>; <code>TOOL_UNAUTHORIZED</code> from <code>src/core/tool-registry.ts</code></td>
@@ -602,7 +600,7 @@ em { color: inherit; }
 <td><code>context_policy</code> in every policy; <code>src/core/memory.ts</code></td>
 </tr>
 <tr>
-<td>RAG-everything</td>
+<td>RAG-everything (retrieval where a SQL tool belongs)</td>
 <td>Fuzzy answers to exact questions</td>
 <td>A typed query tool for live/structured data</td>
 <td><code>src/tools/data/query-power-bi.ts</code> vs. <code>src/core/retrieval.ts</code></td>

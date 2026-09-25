@@ -221,8 +221,7 @@ Audience: developers, QA. Duration: 3–4 weeks (~25–35 hours). Prerequisite: 
 - Read `src/core/structured-output.ts` — the framework's implementation of exactly this pattern.
 - Reading it critically: `StructuredOutputEngine.generate()` feeds the formatted Zod issues back into the next prompt and, after `maxRetries + 1` attempts (default: 2 retries), returns `Err` with `ErrorCodes.INTERNAL_ERROR`. The engine *stops*; routing that failure to a human queue is the **caller's** job — a hard fail nobody handles is just a silent drop. Note too that `extractJson` will pull the first `{…}` out of surrounding prose: convenient, and one more reason the schema must be strict.
 - Unknown fields: Zod object schemas *strip* unrecognized keys by default. That is a silent data decision — use `.strict()` when a field the model invented should be a failure, not a discard.
-- Provider-side help: forcing output through a tool schema (tool use with a forced tool choice) or a provider JSON mode lowers parse-failure rates, but it validates *shape*, not business meaning — your schema check stays.
-- Know which model you are validating: `CLASSIFICATION_RULE` in `src/core/llm-router.ts` matches any `responseFormat: "json"` request, and the engine sets exactly that — so, where the rule is registered, structured calls route to the small model.
+- Provider-side help: forcing output through a tool schema (tool use with a forced tool choice) or a provider JSON mode lowers parse-failure rates, but it validates *shape*, not business meaning — your schema check stays. And know which model you are validating: `CLASSIFICATION_RULE` in `src/core/llm-router.ts` matches any `responseFormat: "json"` request — which the engine always sets.
 
 **Resources:** Anthropic tool-use guide (the sections on JSON output via tool schemas); Zod documentation (object schemas, `.strict()`, `safeParse`); `src/core/structured-output.ts` line-by-line.
 
@@ -440,19 +439,17 @@ sequenceDiagram
 
 **Objectives:** recognize the recurring agent-architecture anti-patterns on sight; name the failure each causes in a bank (audit gap, blast radius, cost); point to the control that prevents it — and automate one of those controls.
 
-The catalog, with real examples dissected: the god agent · agent sprawl (agents as org-chart cosplay) · free-text handoffs · LLM-enforced permissions ("the prompt says it won't") · unbounded loops without turn/cost caps · memory as a junk drawer · RAG-everything (retrieval where a SQL tool belongs) · demo-driven architecture (patterns chosen for wow, not audit) · silent truncation · fallback-to-guessing on low confidence.
-
-**Topics — the catalog, with the fix and where the framework shows it:**
+**Topics — the catalog, dissected with real examples: the fix, and where the framework shows it:**
 
 | Anti-pattern | What goes wrong | The fix | Where to look |
 |---|---|---|---|
 | God agent | One compromise reaches every tool | Split on real boundaries (M2.1) | per-agent `allowed_tools` / `denied_tools` in `policies/*.yaml` |
-| Agent sprawl | Agents mirror the org chart, not clearances or owners | Merge; split only on clearance, owner, autonomy, domain | the router + a few specialists in `src/agents/` |
+| Agent sprawl (org-chart cosplay) | Agents mirror the org chart, not clearances or owners | Merge; split only on clearance, owner, autonomy, domain | the router + a few specialists in `src/agents/` |
 | Free-text handoffs | Unauditable, injectable, lossy | Typed, validated envelope | `src/core/message-envelope.ts` |
-| LLM-enforced permissions | The prompt "forbids" what the code allows | Enforce in the harness | `system_prompt` vs. `denied_tools` in `policies/it-operations.yaml`; `TOOL_UNAUTHORIZED` from `src/core/tool-registry.ts` |
+| LLM-enforced permissions ("the prompt says it won't") | The prompt "forbids" what the code allows | Enforce in the harness | `system_prompt` vs. `denied_tools` in `policies/it-operations.yaml`; `TOOL_UNAUTHORIZED` from `src/core/tool-registry.ts` |
 | Unbounded loops | Runaway cost, denial-of-wallet | Step caps + token budgets | `maxSteps` in `src/core/graph-engine.ts` |
 | Memory as a junk drawer | Stale, over-classified, poisonable state | Reason + classification + TTL | `context_policy` in every policy; `src/core/memory.ts` |
-| RAG-everything | Fuzzy answers to exact questions | A typed query tool for live/structured data | `src/tools/data/query-power-bi.ts` vs. `src/core/retrieval.ts` |
+| RAG-everything (retrieval where a SQL tool belongs) | Fuzzy answers to exact questions | A typed query tool for live/structured data | `src/tools/data/query-power-bi.ts` vs. `src/core/retrieval.ts` |
 | Demo-driven architecture | Patterns chosen for wow, not audit | Lowest rung that works (M2.1 ladder) | your M2.1 lab justifications |
 | Silent truncation | Decisions made on half the context | Compact with a log entry or fail loudly | M1.6 |
 | Fallback-to-guessing | A confident wrong route | Ask or escalate below a threshold | the `confidence < 0.2` path in `src/agents/router/router-agent.ts` |
