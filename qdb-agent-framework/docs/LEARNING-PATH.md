@@ -739,13 +739,28 @@ Audience: tech leads, chief architect, the program owner. Duration: ongoing; the
 
 ### Module 5.1 — Portfolio Strategy (≈4h)
 
+**Objectives:** choose and sequence the bank's agent use cases on evidence, not enthusiasm; cost each one honestly (including human oversight time); pick your capstone process from the result.
+
 **Topics:**
 - Use-case selection discipline: score candidates on volume × risk × measurability × data-readiness; first wins are high-volume, low-risk, measurable-baseline processes (internal ops), not the flashiest demo.
 - Build-vs-buy per layer: buy/rent runtime and models; **own the governance layer always** (Playbook §2.3) — it encodes your delegation-of-authority, your Sharia rules, your QCB obligations, and it must survive vendor changes.
 - Platform economics: per-use-case costing (tokens, infra, human oversight time) vs. platform amortization; when the second and third agent get cheap.
 - Sequencing: the Playbook §10 phases as a portfolio plan — each phase gate is an evidence review, not a date.
 
+**Resources:** Playbook §2.3, §5.3, §6.3, §10; NIST AI RMF MAP function (establishing context and characterizing each use case before building); `docs/templates/autonomy-promotion-evidence-pack.md` (the evidence every phase transition will demand).
+
+**Lab — a scored use-case portfolio:**
+1. Long-list at least 10 candidate processes from at least three business units; include the three already modeled in `policies/` (IT incident triage, PMO status reporting, credit-assessment support) as calibration points.
+2. Fix the scoring weights *before* scoring and justify them in writing. Score each candidate 1–5 on volume, risk (inverted), measurability, and data-readiness; add its Playbook §5.3 worst-case line, a proposed starting autonomy level, and its Module 2.1 pattern rung.
+3. Cost the top three: tokens per task (from your Module 2.6 cost-per-task measurements or the `llm_tokens_total` counter in `src/core/observability.ts` on a simulated run), infrastructure, and oversight minutes (expected approvals × the two-minute target) — against the measured cost of today's process.
+4. Sequence them onto the Playbook §10 phases with the entry gate for each; run a sensitivity check (does the top three change if any weight moves by ±1? say so if it does).
+5. Capture it as `docs/templates/use-case-portfolio-scorecard.md` — no such template exists yet; the first L5 cohort creates it (rubric, weights, cost model, phase mapping) and later cohorts reuse it.
+
+*Done when:* the scorecard has been reviewed by the (proto-)governance committee and at least one process owner, and the top-ranked candidate is named as your capstone process with a baseline-measurement plan — the input to capstone step 1.
+
 ### Module 5.2 — Organizational Design and Change (≈4h)
+
+**Objectives:** design the operating model that makes agents accountable — who owns, approves, validates, and curates each one — and plan the change so people become effective managers of agents rather than rubber stamps.
 
 **Topics:**
 - The roles the org chart doesn't have yet: agent owner ("agent manager"), eval curator (business-side truth supplier), approval-queue designers; where they sit and how they're measured.
@@ -753,7 +768,20 @@ Audience: tech leads, chief architect, the program owner. Duration: ongoing; the
 - The human side, handled honestly: approval fatigue management (Module 2.5's two-minute rule, queue-load telemetry), job-evolution concerns (the agents-as-employees frame means humans become managers-of-agents — train for that explicitly), and cultural failure modes (rubber-stamping, shadow agents outside governance).
 - Managing upward: the CEO's "agents as employees" vision translated into board-level asks — the governance framework approval, the staffing plan, the phase gates.
 
+**Resources:** Playbook §1 (the agents-as-digital-employees table) and §5.2; `docs/templates/ai-governance-committee-charter.md`; NIST AI RMF GOVERN function (roles, responsibilities, accountability); `docs/assessment.html` Team view for the live skills matrix.
+
+**Lab — operating model, RACI, and change plan:**
+1. **RACI** across the agent lifecycle — policy authoring, tool-allowlist change, golden-set curation, eval gate, autonomy promotion, approval-queue decisions, each kill-switch level, incident notification, quarterly access recertification, model-pin upgrade — against the roles: agent owner, owner team, AI platform team, independent validation, security, compliance, Sharia governance, governance committee. Rules: exactly one **A** per row; no row where the builder is also the validator.
+2. **Seed it from what exists:** the `owner_team` in each `policies/*.yaml` (Applications Team, PMO Team, Credit Risk Team, AI Platform Team), the roles named in each `escalation.rules[].notify`, and the committee membership in the charter template. A role named in a policy file with no person behind it is a finding.
+3. **Approver capacity:** from pending approvals (`GET /approvals` in `src/api/routes/admin.ts`) on simulated runs, project decisions per day per named role at target volume. Any role that cannot decide its queue at two minutes per item is redesigned (pre-checks, narrower autonomy scope) before launch.
+4. **Skills gap and change plan:** current matrix vs. the minimum viable team (§2 of this document); the cohorts that close the gap; the messages for staff whose work shifts to managing agents; and the metrics that expose cultural failure (unmodified-approval rates near 100% with near-zero review time = rubber-stamping; agents running without a file in `policies/` = shadow agents).
+5. Capture the RACI as `docs/templates/agent-operating-model-raci.md` — no such template exists yet (the charter template covers only the committee); create it.
+
+*Done when:* the RACI is signed off by the committee chair and at least two owner teams, and the change plan has dated milestones and named owners. The RACI is the "named owner team" evidence for capstone step 5.
+
 ### Module 5.3 — Vendor, Model, and Ecosystem Strategy (≈3h)
+
+**Objectives:** keep QDB able to change model provider on its own timeline — know every model dependency, evaluate alternatives on your own evals, and hold a tested exit plan a regulator can inspect.
 
 **Topics:**
 - Multi-provider posture as regulatory hygiene (QCB exit-strategy expectations): the LLM-router abstraction as the technical enabler; annual exit-drill (re-run the eval suite on the alternate provider, document the gap).
@@ -761,7 +789,21 @@ Audience: tech leads, chief architect, the program owner. Duration: ongoing; the
 - Ecosystem tracking without whiplash: what's durable (least privilege, evals, envelopes, autonomy ladders) vs. what churns (frameworks, protocols, model rankings); MCP/A2A adoption posture — standards at the edges, governance envelope inside.
 - Contract literacy: DPAs, no-training clauses, residency commitments, SLA realities of model APIs.
 
+**Resources:** Playbook §2.3, §5.1 (the QCB exit-strategy row), and §9; each provider's published model-deprecation page (Anthropic docs "Model deprecations"; OpenAI docs "Deprecations"); modelcontextprotocol.io and the A2A spec for the adoption-posture discussion.
+
+**Lab — vendor/model evaluation and exit plan:**
+1. **Pin inventory:** find every model identifier the framework uses — provider `defaultModel` values in `src/index.ts`, `CLASSIFICATION_RULE` / `REASONING_RULE` in `src/core/llm-router.ts`, the default in `src/core/agent-runtime.ts`. Classify each as a dated pin (e.g. `claude-sonnet-4-20250514`) or an undated alias (e.g. `gpt-4o`, `llama3`), and record the provider's announced retirement date where one exists. Note that the pins live in code, not in `policies/*.yaml`; decide whether they should (Module 3.3's release unit).
+2. **Evaluation matrix** for the primary provider and at least one alternate (include a Qatar-resident or local option — the router already supports `ollama`): task-eval results, residency of inference, contract terms (DPA, no-training, retention, SLA, deprecation notice), and cost per task including the Arabic token multiplier (Module 2.6). Be precise about evidence: the current `npm run eval` suites exercise the deterministic router and guardrails and do not call a model, so provider comparison needs the model-backed task evals from Module 3.1 — if those don't exist yet, that is finding #1.
+3. **Exit plan:** triggers (deprecation, residency or contract change, price, sustained outage, regulatory instruction), target alternate, switch mechanism (router provider config and fallback order — configuration, not a rewrite), tolerated eval gap, timeline, owner. Capture it as `docs/templates/model-vendor-exit-plan.md` — no such template exists yet; create it.
+4. **Exit drill (sandbox):** re-point one agent's classification path to the alternate provider, run the suites, and record the gap.
+
+*Done when:* every model identifier is either pinned or carries a written justification, the matrix is reviewed by security and procurement/legal, and the drill results are filed. These are the model-pin and exit-strategy evidence in the capstone governance pack (step 5) and the QCB exit-strategy row in your Module 4.5 mapping.
+
 ### Module 5.4 — The Capstone (the hero gate)
+
+**Objectives:** take one real process through the full lifecycle with signed evidence at every step; argue a defensible go / no-go before the committee.
+
+**The capstone is the L5 gate** — there is no separate L5 gate review. It is judged on the Appendix F capstone criteria, and the Module 5.1–5.3 lab artifacts are required inputs: the portfolio scorecard feeds step 1, the RACI and exit plan feed step 5, and the pin inventory feeds step 7's versions-in-force.
 
 Take **one real QDB process** end-to-end through the entire lifecycle. All seven steps, no skips:
 
