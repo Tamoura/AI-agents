@@ -75,7 +75,42 @@ const DOCS = [
     subtitle: "Running agents as digital employees in a regulated bank",
     badge: "Playbook · updated July 2026",
   },
+  {
+    src: "docs/LEARNING-PATH.ar.md",
+    out: "docs/learning-path.ar.html",
+    lang: "ar",
+    en: "docs/LEARNING-PATH.md",
+    title: "الذكاء الاصطناعي الوكيلي في QDB — منهج من الصفر إلى الاحتراف",
+    subtitle: "البناء · المعمارية · التأمين · الحوكمة · النشر · التقييم · الرصد",
+    badge: "المنهج · تحديث يوليو 2026",
+  },
+  {
+    src: "docs/PRODUCTION-PLAYBOOK.ar.md",
+    out: "docs/production-playbook.ar.html",
+    lang: "ar",
+    en: "docs/PRODUCTION-PLAYBOOK.md",
+    title: "الذكاء الاصطناعي الوكيلي في QDB — دليل التشغيل في بيئة الإنتاج",
+    subtitle: "تشغيل الوكلاء موظفين رقميين في بنك خاضع للتنظيم",
+    badge: "دليل التشغيل · تحديث يوليو 2026",
+  },
 ];
+
+/** Each page's counterpart in the other language, for the language link. */
+const PAIR = {
+  "docs/learning-path.html": "learning-path.ar.html",
+  "docs/learning-path.ar.html": "learning-path.html",
+  "docs/production-playbook.html": "production-playbook.ar.html",
+  "docs/production-playbook.ar.html": "production-playbook.html",
+};
+
+/** Heading depths and ids of a markdown file, in order (fences ignored). */
+function headingIds(src) {
+  slugCounts.clear();
+  const md = readFileSync(join(ROOT, src), "utf8").replace(/```[\s\S]*?```/g, "");
+  const out = [];
+  for (const t of marked.lexer(md)) if (t.type === "heading") out.push({ depth: t.depth, id: slugify(t.text) });
+  return out;
+}
 
 const slugCounts = new Map();
 function slugify(text) {
@@ -92,6 +127,20 @@ function slugify(text) {
 }
 
 function render(doc) {
+  const ar = doc.lang === "ar";
+  // The Arabic edition must mirror the English heading for heading (and diagram for diagram);
+  // its headings take the English ids, so links and anchors work the same in both languages.
+  let enIds = null;
+  if (ar) {
+    enIds = headingIds(doc.en);
+    const arHeads = headingIds(doc.src);
+    const shape = (hs) => hs.map((h) => h.depth).join(",");
+    if (shape(enIds) !== shape(arHeads))
+      throw new Error(`${doc.src}: headings do not mirror ${doc.en} (${arHeads.length} vs ${enIds.length})`);
+    const fences = (f) => (readFileSync(join(ROOT, f), "utf8").match(/```mermaid/g) || []).length;
+    if (fences(doc.src) !== fences(doc.en)) throw new Error(`${doc.src}: diagram count differs from ${doc.en}`);
+  }
+  let hi = 0;
   slugCounts.clear();
   const raw = readFileSync(join(ROOT, doc.src), "utf8");
   const [md, svgs] = extractMermaid(raw);
@@ -100,11 +149,11 @@ function render(doc) {
   const renderer = new marked.Renderer();
   renderer.heading = ({ text, depth, tokens }) => {
     const inline = marked.Parser.parseInline(tokens);
-    const id = slugify(text);
+    const id = ar ? enIds[hi++].id : slugify(text);
     if (depth === 1 || depth === 2 || depth === 3) {
       headings.push({ depth, text: text.replace(/[*_`]/g, ""), id });
     }
-    return `<h${depth} id="${id}">${inline}<a class="anchor" href="#${id}" aria-label="link to section">#</a></h${depth}>\n`;
+    return `<h${depth} id="${id}">${inline}<a class="anchor" href="#${id}" aria-label="${ar ? "رابط إلى القسم" : "link to section"}">#</a></h${depth}>\n`;
   };
   renderer.table = function (token) {
     const html = marked.Renderer.prototype.table.call(this, token);
@@ -125,7 +174,7 @@ function render(doc) {
     .join("\n");
 
   return `<!doctype html>
-<html lang="en">
+<html lang="${ar ? "ar" : "en"}" dir="${ar ? "rtl" : "ltr"}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -151,20 +200,26 @@ body {
   margin: 0; background: var(--bg); color: var(--ink);
   font: 16px/1.65 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
 }
+html[lang="ar"] body { font-family: "Noto Naskh Arabic", "Amiri", "Iowan Old Style", Georgia, serif; font-size: 17px; line-height: 1.85; }
+html[lang="ar"] nav, html[lang="ar"] table, html[lang="ar"] h3 { font-family: "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif; }
+html[lang="ar"] nav .nav-title, html[lang="ar"] .badge { letter-spacing: 0; text-transform: none; }
+html[lang="ar"] code, html[lang="ar"] pre { direction: ltr; unicode-bidi: isolate; }
+html[lang="ar"] figure.diagram { direction: ltr; }
+.lang-link { float: inline-end; font-family: -apple-system, "Segoe UI", sans-serif; font-size: .8rem; }
 .layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); max-width: 1280px; margin: 0 auto; }
 nav {
   position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto;
-  padding: 2rem 1.25rem 3rem; border-right: 1px solid var(--line);
+  padding: 2rem 1.25rem 3rem; border-inline-end: 1px solid var(--line);
   font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: .82rem;
 }
 nav .nav-title { font-weight: 700; color: var(--accent); letter-spacing: .04em; text-transform: uppercase; font-size: .72rem; margin-bottom: 1rem; }
 nav ul { list-style: none; margin: 0; padding: 0; }
 nav li { margin: 0; }
-nav a { display: block; padding: .28rem .5rem; color: var(--muted); text-decoration: none; border-radius: 6px; border-left: 2px solid transparent; }
+nav a { display: block; padding: .28rem .5rem; color: var(--muted); text-decoration: none; border-radius: 6px; border-inline-start: 2px solid transparent; }
 nav a:hover { color: var(--ink); background: var(--accent-soft); }
 li.toc-d1 { margin-top: .9rem; }
 li.toc-d1 > a { font-weight: 700; color: var(--ink); }
-li.toc-d2 > a { padding-left: 1.1rem; border-left: 2px solid var(--line); border-radius: 0 6px 6px 0; margin-left: .5rem; }
+li.toc-d2 > a { padding-inline-start: 1.1rem; border-inline-start: 2px solid var(--line); border-start-start-radius: 0; border-end-start-radius: 0; margin-inline-start: .5rem; }
 main { padding: 2.5rem 3rem 6rem; max-width: 860px; }
 header.doc-header { margin-bottom: 2.5rem; padding-bottom: 1.75rem; border-bottom: 3px double var(--accent); }
 .badge {
@@ -178,7 +233,7 @@ h1, h2, h3, h4 { line-height: 1.25; scroll-margin-top: 1.5rem; position: relativ
 main > h1 { font-size: 1.7rem; margin-top: 3.5rem; color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: .4rem; }
 h2 { font-size: 1.35rem; margin-top: 2.75rem; }
 h3 { font-size: 1.08rem; margin-top: 2rem; font-family: -apple-system, "Segoe UI", sans-serif; }
-a.anchor { opacity: 0; margin-left: .4rem; text-decoration: none; color: var(--muted); font-size: .8em; }
+a.anchor { opacity: 0; margin-inline-start: .4rem; text-decoration: none; color: var(--muted); font-size: .8em; }
 h1:hover .anchor, h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 1; }
 a { color: var(--link); }
 p, li { max-width: 72ch; }
@@ -189,10 +244,10 @@ code {
 }
 pre { background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 1rem; overflow-x: auto; }
 pre code { background: none; padding: 0; }
-blockquote { margin: 1.25rem 0; padding: .1rem 1.25rem; border-left: 3px solid var(--accent); background: var(--panel); color: var(--muted); border-radius: 0 8px 8px 0; }
+blockquote { margin: 1.25rem 0; padding: .1rem 1.25rem; border-inline-start: 3px solid var(--accent); background: var(--panel); color: var(--muted); border-radius: 8px; border-start-start-radius: 0; border-end-start-radius: 0; }
 .table-wrap { overflow-x: auto; margin: 1.25rem 0; border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); }
 table { border-collapse: collapse; width: 100%; font-family: -apple-system, "Segoe UI", sans-serif; font-size: .85rem; background: var(--panel); }
-th { text-align: left; background: var(--accent-soft); color: var(--ink); font-weight: 700; }
+th { text-align: start; background: var(--accent-soft); color: var(--ink); font-weight: 700; }
 th, td { padding: .55rem .8rem; border-bottom: 1px solid var(--line); vertical-align: top; }
 tbody tr:last-child td { border-bottom: none; }
 tbody tr:hover { background: color-mix(in srgb, var(--accent-soft) 40%, transparent); }
@@ -206,7 +261,7 @@ em { color: inherit; }
 ::selection { background: var(--accent-soft); }
 @media (max-width: 900px) {
   .layout { grid-template-columns: 1fr; }
-  nav { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--line); }
+  nav { position: static; height: auto; border-inline-end: none; border-bottom: 1px solid var(--line); }
   main { padding: 1.5rem 1.25rem 4rem; }
 }
 @media print {
@@ -223,13 +278,14 @@ em { color: inherit; }
 <body>
 <div class="layout">
 <nav aria-label="Table of contents">
-  <div class="nav-title">Contents</div>
+  <div class="nav-title">${ar ? "المحتويات" : "Contents"}</div>
   <ul>
 ${toc}
   </ul>
 </nav>
 <main>
 <header class="doc-header">
+  <a class="lang-link" href="${PAIR[doc.out]}" hreflang="${ar ? "en" : "ar"}" lang="${ar ? "en" : "ar"}">${ar ? "English" : "العربية"}</a>
   <span class="badge">${doc.badge}</span>
   <h1>${doc.title}</h1>
   <p>${doc.subtitle}</p>
@@ -243,6 +299,10 @@ ${body}
 }
 
 for (const doc of DOCS) {
+  if (!existsSync(join(ROOT, doc.src))) {
+    console.warn(`skipped ${doc.out}: ${doc.src} does not exist`);
+    continue;
+  }
   const html = render(doc);
   writeFileSync(join(ROOT, doc.out), html);
   console.log(`built ${doc.out} (${(html.length / 1024).toFixed(0)} KB)`);

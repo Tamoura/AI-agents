@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تقييم مهارات الذكاء الاصطناعي الوكيلي — QDB</title>
+<link rel="alternate" hreflang="en" href="assessment.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@500;700&family=Noto+Sans+Arabic:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#faf9f6; --panel:#ffffff; --ink:#1f2430; --muted:#5c6470;
+  --accent:#7a1f2b; --accent-soft:#f3e2e4; --line:#e3e0da; --code-bg:#f1efe9;
+  --good:#2e6b3e; --good-soft:#e4efe6; --warn:#8a6d1f; --warn-soft:#f5eede;
+  --bad:#9c3838; --bad-soft:#f6e4e4; --shadow:0 1px 3px rgba(30,30,40,.08);
+  --r1:#e9cdd1; --r2:#c98d95; --r3:#a1505c; --r4:#7a1f2b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:#16181d; --panel:#1d2026; --ink:#e8e6e1; --muted:#9aa0aa;
+    --accent:#d98a94; --accent-soft:#3a2226; --line:#2e323a; --code-bg:#24272e;
+    --good:#7fbf8e; --good-soft:#20301f; --warn:#d8b45a; --warn-soft:#33290f;
+    --bad:#e08a8a; --bad-soft:#3a2020; --shadow:0 1px 3px rgba(0,0,0,.4);
+    --r1:#4a2a2f; --r2:#743d46; --r3:#a55b66; --r4:#d98a94;
+  }
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink);
+  font:15px/1.75 "Noto Sans Arabic","Segoe UI",Tahoma,-apple-system,Roboto,Helvetica,Arial,sans-serif; }
+/* Arabic letters must stay joined: no letter-spacing, no uppercase transform, no italics */
+.wrap { max-width:900px; margin:0 auto; padding:2rem 1.25rem 6rem; }
+header.top { border-bottom:3px double var(--accent); padding-bottom:1.25rem; margin-bottom:1.5rem; }
+header.top .topbar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem 1rem; }
+header.top h1 { font-family:"Noto Naskh Arabic","Iowan Old Style",Palatino,Georgia,serif; font-size:1.8rem; line-height:1.4; margin:.4rem 0 .3rem; }
+header.top p { color:var(--muted); margin:0; }
+.badge { display:inline-block; font-size:.75rem; letter-spacing:0;
+  color:var(--accent); border:1px solid var(--accent); border-radius:999px; padding:.15rem .65rem; }
+.lang { font-size:.8rem; font-weight:600; color:var(--muted); text-decoration:none; border:1px solid var(--line);
+  border-radius:999px; padding:.1rem .7rem; font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+.lang:hover, .lang:focus-visible { color:var(--accent); border-color:var(--accent); }
+.tabs { display:flex; gap:.4rem; margin:1.25rem 0; flex-wrap:wrap; }
+.tabs button { font:inherit; font-weight:600; padding:.5rem 1rem; border-radius:999px;
+  border:1px solid var(--line); background:var(--panel); color:var(--muted); cursor:pointer; }
+.tabs button.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+.tabs button:not(.active):hover { background:var(--accent-soft); color:var(--ink); }
+.tabs button.reset { margin-inline-start:auto; border-color:var(--bad); color:var(--bad); }
+.tabs button.reset:hover { background:var(--bad-soft); color:var(--bad); }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:1.5rem; margin-bottom:1.25rem; box-shadow:var(--shadow); }
+.card h2 { margin:0 0 .35rem; font-size:1.2rem; }
+.card h3 { font-size:1rem; margin:1.25rem 0 .5rem; }
+.card .sub { color:var(--muted); font-size:.88rem; margin:0 0 1rem; }
+label.fld { display:block; font-weight:600; font-size:.88rem; margin:.9rem 0 .25rem; }
+input[type=text], select { font:inherit; width:100%; max-width:420px; padding:.5rem .7rem;
+  border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); }
+input[type=file] { max-width:100%; }
+.q { border-top:1px solid var(--line); padding:1rem 0 .5rem; }
+.q:first-of-type { border-top:none; }
+.q .qt { font-weight:600; margin-bottom:.5rem; }
+.q .meta { font-size:.76rem; color:var(--muted); letter-spacing:0; margin-bottom:.3rem; }
+.opt { display:flex; gap:.55rem; align-items:flex-start; padding:.35rem .5rem; border-radius:8px; cursor:pointer; }
+.opt:hover { background:var(--accent-soft); }
+.opt input { margin-top:.4rem; accent-color:var(--accent); }
+.ev { display:flex; gap:.6rem; align-items:flex-start; padding:.45rem .5rem; border-radius:8px; cursor:pointer; }
+.ev:hover { background:var(--accent-soft); }
+.ev input { margin-top:.4rem; accent-color:var(--accent); width:16px; height:16px; flex:none; }
+.ev .lvl { flex:none; font-size:.68rem; font-weight:700; color:var(--accent); border:1px solid var(--accent);
+  border-radius:6px; padding:.05rem .4rem; margin-top:.25rem; }
+button.primary { font:inherit; font-weight:700; background:var(--accent); color:#fff; border:none;
+  border-radius:10px; padding:.7rem 1.6rem; cursor:pointer; margin-top:1rem; }
+button.primary:hover { filter:brightness(1.12); }
+button.ghost { font:inherit; font-weight:600; background:none; color:var(--accent);
+  border:1px solid var(--accent); border-radius:10px; padding:.55rem 1.2rem; cursor:pointer; margin-inline-end:.5rem; margin-bottom:.5rem; }
+.pill { white-space:nowrap; display:inline-flex; align-items:center; gap:.35rem; font-size:.8rem; font-weight:700;
+  border-radius:999px; padding:.25rem .8rem; }
+.pill.good { background:var(--good-soft); color:var(--good); }
+.pill.warn { background:var(--warn-soft); color:var(--warn); }
+.pill.bad  { background:var(--bad-soft);  color:var(--bad); }
+/* in RTL the flex row starts at the right, so the meter fills from the right */
+.meter { display:inline-flex; gap:3px; vertical-align:middle; }
+.meter span { width:26px; height:12px; border-radius:3px; background:var(--code-bg); border:1px solid var(--line); }
+.meter span.f1 { background:var(--r2); border-color:var(--r2); }
+.meter span.f2 { background:var(--r3); border-color:var(--r3); }
+.meter span.f3 { background:var(--r4); border-color:var(--r4); }
+.table-wrap { overflow-x:auto; border:1px solid var(--line); border-radius:10px; margin:1rem 0; }
+table { border-collapse:collapse; width:100%; font-size:.85rem; background:var(--panel); }
+th { text-align:start; background:var(--accent-soft); font-weight:700; position:sticky; top:0; }
+th, td { padding:.5rem .7rem; border-bottom:1px solid var(--line); vertical-align:top; }
+tbody tr:last-child td { border-bottom:none; }
+td.num { text-align:center; font-variant-numeric:tabular-nums; }
+.cell-r0 { background:transparent; } .cell-r1 { background:var(--r1); }
+.cell-r2 { background:var(--r2); } .cell-r3 { background:var(--r3); color:#fff; }
+@media (prefers-color-scheme: dark){ .cell-r3{ color:#16181d; } }
+.gap-item { border-inline-start:3px solid var(--accent); background:var(--bg); border-radius:8px 0 0 8px;
+  padding:.7rem .9rem; margin:.6rem 0; }
+.gap-item > b { display:block; margin-bottom:.15rem; }
+.gap-item .why { color:var(--muted); font-size:.86rem; }
+.hero { display:flex; gap:1rem; flex-wrap:wrap; margin:.75rem 0 1rem; }
+.tile { flex:1 1 180px; background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:.9rem 1rem; }
+.tile .k { font-size:.78rem; letter-spacing:0; color:var(--muted); }
+.tile .v { font-size:1.5rem; font-weight:800; font-family:Palatino,Georgia,serif; }
+.tile .d { font-size:.8rem; color:var(--muted); }
+.progress { font-size:.85rem; color:var(--muted); margin-bottom:.5rem; }
+.hide { display:none; }
+.nw { white-space:nowrap; display:inline-block; }
+textarea { width:100%; min-height:90px; font:.8rem/1.4 ui-monospace,Menlo,Consolas,monospace;
+  border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); padding:.6rem; }
+footer { color:var(--muted); font-size:.8rem; margin-top:2rem; }
+@media print {
+  body { background:#fff; color:#000; font-size:11pt; }
+  .tabs, button.primary, button.ghost, #tab-knowledge, #tab-evidence, #tab-profile, #tab-team, .noprint { display:none !important; }
+  #tab-results { display:block !important; }
+  .card { border:none; box-shadow:none; padding:0; margin-bottom:1.5rem; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="topbar">
+    <span class="badge">التقييم · <bdi dir="ltr">v1.3</bdi> · يوليو 2026</span>
+    <a class="lang" href="assessment.html" lang="en" hreflang="en">English</a>
+  </div>
+  <h1>تقييم مهارات الذكاء الاصطناعي الوكيلي <span class="nw">(Agentic AI)</span></h1>
+  <p>اعرف مستواك، واكتشف ما ينقصك لدورك، واحصل على خطتك. مُرافق لمنهج «من الصفر إلى الاحتراف» <span class="nw">(Zero-to-Hero Curriculum)</span>.</p>
+</header>
+
+<div class="tabs" role="tablist">
+  <button id="tb-profile" class="active" onclick="show('profile')">1 · الملف الشخصي</button>
+  <button id="tb-knowledge" onclick="show('knowledge')">2 · اختبار المعرفة</button>
+  <button id="tb-evidence" onclick="show('evidence')">3 · الأدلة</button>
+  <button id="tb-results" onclick="show('results')">4 · نتائجي</button>
+  <button id="tb-team" onclick="show('team')">عرض الفريق</button>
+  <button id="tb-reset" class="reset" onclick="resetAll()" title="امسح كل الإجابات والأدلة وابدأ من جديد">↺ إعادة الضبط</button>
+</div>
+
+<!-- ══════════ PROFILE ══════════ -->
+<section id="tab-profile">
+  <div class="card">
+    <h2>من أنت؟</h2>
+    <p class="sub">يحدد دورك الملف المستهدف (target profile) الذي تُقاس عليه (المنهج <bdi>§2</bdi>، مسارات الأدوار (Role Tracks)). تُحفظ الإجابات تلقائيًا في هذا المتصفح.</p>
+    <label class="fld" for="p-name">الاسم</label>
+    <input type="text" id="p-name" placeholder="مثال: تامورة" oninput="save()">
+    <label class="fld" for="p-role">الدور</label>
+    <select id="p-role" onchange="save()">
+      <option value="developer">مطوّر (Developer)</option>
+      <option value="architect">مهندس حلول / مهندس معماري مؤسسي (Solution / Enterprise Architect)</option>
+      <option value="sre">DevOps / SRE</option>
+      <option value="security">مهندس أمن (Security engineer)</option>
+      <option value="risk">المخاطر / الامتثال / التدقيق الداخلي</option>
+      <option value="qa">مهندس ضمان الجودة / الاختبار (QA / Test)</option>
+      <option value="data">مهندس بيانات / ذكاء أعمال (Data / BI)</option>
+      <option value="pmo">مالك المنتج / مكتب إدارة المشاريع (Product owner / PMO)</option>
+      <option value="lead">قائد البرنامج / القائد التقني (Program lead / Tech lead)</option>
+      <option value="exec">تنفيذي (CIO / CEO / مجلس الإدارة)</option>
+    </select>
+    <button class="primary" onclick="show('knowledge')">ابدأ اختبار المعرفة ←</button>
+  </div>
+</section>
+
+<!-- ══════════ KNOWLEDGE ══════════ -->
+<section id="tab-knowledge" class="hide">
+  <div class="card">
+    <h2>اختبار المعرفة</h2>
+    <p class="sub">40 سؤالًا، نحو 15 دقيقة، تغطي المستويات <bdi dir="ltr">L0–L5</bdi> عبر التخصصات الاثني عشر كلها. أجب دون البحث عن المعلومات — فهذا الاختبار يقيس <em>معرفتك أنت</em>، لا مهارتك في البحث. السؤال غير المُجاب يُحتسب خطأً.</p>
+    <div class="progress" id="k-progress">أُجيب عن 0 من 40</div>
+    <div id="k-list"></div>
+    <button class="primary" onclick="show('evidence')">تابع إلى الأدلة ←</button>
+  </div>
+</section>
+
+<!-- ══════════ EVIDENCE ══════════ -->
+<section id="tab-evidence" class="hide">
+  <div class="card">
+    <h2>أدلة الممارسة</h2>
+    <p class="sub">المعرفة تجعلك <b>مُلمًّا (aware) (1)</b>؛ أما العمل المُنجَز والمُراجَع فقط فيجعلك <b>ممارِسًا (practiced) (2)</b>. حدّد فقط ما أنجزته فعلًا — يتحقق المراجعون في الدفعة (cohort) من البوابات (gates)، والادعاءات غير القابلة للتحقق تُسقط المصفوفة بأكملها. «كان بإمكاني فعله» ليس «فعلته».</p>
+    <div id="e-list"></div>
+    <h3>إقرار التدريس ← قادر على التدريس (can-teach) (3)</h3>
+    <p class="sub">حدّد تخصصًا فقط إذا كنت قد درّسته فعلًا — وحدة ضمن دفعة، أو ورشة عمل، أو عمل ثنائي منظّم (structured pairing). التقييم 3 يتطلب أدلة التقييم 2 أيضًا.</p>
+    <div id="t-list"></div>
+    <button class="primary" onclick="computeResults(); show('results')">اعرض نتائجي ←</button>
+  </div>
+</section>
+
+<!-- ══════════ RESULTS ══════════ -->
+<section id="tab-results" class="hide">
+  <div class="card" id="r-card">
+    <h2>أكمل اختبار المعرفة والأدلة أولًا</h2>
+    <p class="sub">ثم تظهر نتائجك هنا.</p>
+  </div>
+  <div class="card noprint" id="r-actions" style="display:none">
+    <h2>الحفظ والمشاركة</h2>
+    <p class="sub">صدّر نتيجتك بصيغة JSON وأرسلها إلى قائد البرنامج — يجمع «عرض الفريق» ملفات الجميع المُصدَّرة. أو اطبع هذه الصفحة للحصول على نسخة ورقية.</p>
+    <button class="ghost" onclick="exportJSON()">نزّل نتيجتي (JSON)</button>
+    <button class="ghost" onclick="window.print()">اطبع التقرير</button>
+    <button class="ghost" onclick="resetAll()">أعد ضبط التقييم</button>
+  </div>
+</section>
+
+<!-- ══════════ TEAM ══════════ -->
+<section id="tab-team" class="hide">
+  <div class="card">
+    <h2>عرض الفريق — لقائد البرنامج</h2>
+    <p class="sub">حمّل ملفات JSON المُصدَّرة من الجميع لترى المؤسسة كاملة: أين يقف كل شخص، وما التخصصات المغطّاة، وأين لم تتحقق بعد أهداف البرنامج (الملحق B من المنهج: شخصان على الأقل بمستوى «قادر على التدريس» في كل تخصص؛ وكل فريق مالك (owner team) لوكيل (agent) يضم شخصًا ممارِسًا واحدًا على الأقل في التقييمات (evals) والإنسان في الحلقة (HITL) وقابلية الرصد (observability)).</p>
+    <input type="file" id="team-files" multiple accept=".json" aria-label="اختر ملفات JSON المُصدَّرة" onchange="loadTeamFiles(this.files)">
+    <p class="sub" style="margin-top:.6rem">…أو الصق ملف JSON مُصدَّرًا واحدًا أو أكثر (متتالية أو في مصفوفة):</p>
+    <textarea id="team-paste" dir="ltr" aria-label="الصق نتائج JSON" placeholder='[{"name":"...","role":"...","ratings":{...}}, ...]'></textarea>
+    <button class="ghost" onclick="loadTeamPaste()">أضف النتائج الملصقة</button>
+    <div id="team-out"></div>
+  </div>
+</section>
+
+<footer>QDB Agent Framework · مستقل بالكامل، ولا تغادر أي بيانات هذا المتصفح · تبقى النتائج في localStorage حتى تعيد الضبط ·
+قواعد التقييم مطابقة للمنهج: 1 مُلمّ = المعرفة، 2 ممارِس = مخرجات البوابات المُنجَزة، 3 قادر على التدريس = درّس + ممارِس.</footer>
+</div>
+
+<script>
+"use strict";
+/* ─── Model ──────────────────────────────────────────────────────────── */
+/* Arabic edition: ids, keys, storage key, export format and TOOL_VERSION are identical to assessment.html
+   so saved progress and exported JSON stay compatible between languages. Only display strings are translated. */
+const TOOL_VERSION = "1.3";
+const DISC = [
+  { id:"prompting", short:"الأوامر",   name:"هندسة الأوامر (prompting) وواجهات LLM API",                     mods:"M1.1–M1.2", lab:"سكربت API متدفق (streaming) متعدد الأدوار مع إعادة المحاولة وسقف للتكلفة؛ تحسين دقة أمر الفرز (triage prompt) تكراريًا" },
+  { id:"tools",     short:"الأدوات",   name:"استخدام الأدوات (tool use) والمخرجات المهيكلة (structured output)", mods:"M1.3–M1.4", lab:"ابنِ الأداة query-hr-directory مع اختبار رفض قائمة السماح (allowlist) — بوابة L1" },
+  { id:"retrieval", short:"الاسترجاع", name:"الاسترجاع (RAG)",                                                mods:"M1.5",      lab:"ask-the-playbook مع استشهادات بالأقسام ورفض صادق للأسئلة غير المسندة" },
+  { id:"orch",      short:"التنسيق",   name:"التنسيق (orchestration) وتعدد الوكلاء (multi-agent)",              mods:"M2.1–M2.3", lab:"وكيل المشتريات + رسم بياني من 3 عُقد بنقاط حفظ (checkpoints) + سير عمل متعدد الوكلاء" },
+  { id:"mcp",       short:"MCP",       name:"MCP / التكامل (integration)",                                    mods:"M2.4",      lab:"غلّف search-ecm كخادم MCP واستدعِه من عميل (client)" },
+  { id:"hitl",      short:"HITL",      name:"تصميم الإنسان في الحلقة (human-in-the-loop)",                    mods:"M2.5",      lab:"دورة موافقة كاملة مع التحقق من مساري الموافقة والرفض في سجل التدقيق (audit log)" },
+  { id:"evals",     short:"التقييم",   name:"التقييم (evaluation)",                                           mods:"M3.1–M3.2", lab:"مجموعة ذهبية (golden dataset) من 30 حالة + مجموعة عدائية (adversarial) من 15 حالة موصولة بـCI" },
+  { id:"cicd",      short:"CI/CD",     name:"CI/CD والنشر (deployment)",                                      mods:"M3.3–M3.4", lab:"خط ترقية (promotion pipeline) + تراجع (rollback) مُنفَّذ + تمرين فوضى (chaos drill)" },
+  { id:"obs",       short:"الرصد",     name:"قابلية الرصد (observability) والاستجابة للحوادث",                 mods:"M3.5–M3.6", lab:"تتبّعات Jaeger + لوحة متابعة لكل وكيل + تمرين إعادة بناء في أقل من 30 دقيقة" },
+  { id:"sec",       short:"الأمن",     name:"الأمن والفريق الأحمر (red-teaming)",                              mods:"M4.1–M4.3", lab:"نموذج تهديدات STRIDE + تمرين فريق أحمر ثنائي + تقوية الحاجز الوقائي لبيانات PII" },
+  { id:"gov",       short:"الحوكمة",   name:"الحوكمة (governance) والمتطلبات التنظيمية",                       mods:"M4.4–M4.6", lab:"خريطة تنظيمية (QCB أو PDPPL) + قالب حزمة أدلة (evidence pack) تعتمده اللجنة" },
+  { id:"lead",      short:"القيادة",   name:"قيادة البرنامج",                                                 mods:"M5.1–M5.4", lab:"المشروع الختامي (capstone): عملية حقيقية واحدة عبر خطوات دورة الحياة السبع كلها" },
+];
+/* Target rating per discipline by role (0 none / 1 aware / 2 practiced). Can-teach (3) is a program goal, not an individual target. */
+const TARGETS = {
+  developer:{prompting:2,tools:2,retrieval:2,orch:2,mcp:2,hitl:2,evals:2,cicd:2,obs:2,sec:1,gov:1,lead:0},
+  architect:{prompting:2,tools:2,retrieval:2,orch:2,mcp:2,hitl:2,evals:2,cicd:1,obs:1,sec:2,gov:2,lead:2},
+  sre:{prompting:1,tools:1,retrieval:1,orch:1,mcp:1,hitl:1,evals:1,cicd:2,obs:2,sec:1,gov:1,lead:0},
+  security:{prompting:1,tools:1,retrieval:1,orch:1,mcp:1,hitl:1,evals:1,cicd:1,obs:1,sec:2,gov:1,lead:0},
+  risk:{prompting:1,tools:0,retrieval:0,orch:1,mcp:0,hitl:1,evals:1,cicd:0,obs:1,sec:1,gov:2,lead:0},
+  qa:{prompting:2,tools:2,retrieval:1,orch:1,mcp:1,hitl:1,evals:2,cicd:1,obs:1,sec:1,gov:0,lead:0},
+  data:{prompting:2,tools:2,retrieval:2,orch:1,mcp:1,hitl:1,evals:1,cicd:1,obs:1,sec:1,gov:1,lead:0},
+  pmo:{prompting:1,tools:0,retrieval:1,orch:1,mcp:0,hitl:1,evals:1,cicd:0,obs:0,sec:0,gov:1,lead:1},
+  lead:{prompting:2,tools:2,retrieval:1,orch:2,mcp:1,hitl:2,evals:2,cicd:1,obs:1,sec:1,gov:2,lead:2},
+  exec:{prompting:1,tools:0,retrieval:0,orch:1,mcp:0,hitl:1,evals:1,cicd:0,obs:0,sec:1,gov:1,lead:1},
+};
+const ROLE_NAMES = {developer:"مطوّر",architect:"مهندس معماري",sre:"DevOps / SRE",security:"مهندس أمن",risk:"المخاطر / الامتثال",qa:"ضمان الجودة / الاختبار",data:"البيانات / ذكاء الأعمال",pmo:"المنتج / PMO",lead:"قائد البرنامج",exec:"تنفيذي"};
+
+/* 40 questions: {d: discipline, l: level, q, o: options, a: correct index} — option order and `a` identical to the English page */
+const QS = [
+ {d:"prompting",l:0,q:"لماذا يمكن لنموذج اللغة الكبير (LLM) أن يذكر معلومة خاطئة بثقة تامة؟",o:["إنه عيب في بيانات التدريب (training data) تقلّصه إصدارات النماذج الأحدث تدريجيًا","إنه ينتج دائمًا نصًا معقولًا، والمعقول ليس بالضرورة صحيحًا","يحدث ذلك عندما تمتلئ نافذة السياق (context window) فتُحذف المادة المصدرية بصمت","إنه خطأ في فك الترميز (decoding) يظهر أساسًا عندما تكون الأوامر (prompts) سيئة البنية"],a:1},
+ {d:"prompting",l:1,q:"في مهام الاستخراج (extraction) والتصنيف (classification) في بيئة الإنتاج (production)، يجب أن تكون درجة الحرارة (temperature)…",o:["مرتفعة، كي تبقى المخرجات متنوعة بما يكفي لتجنّب تحيّز منهجي واحد","على القيمة الافتراضية للمزوّد، المضبوطة لكل إصدار من النموذج","صفرًا أو قريبة من الصفر، للحصول على أكثر المخرجات اتساقًا وقابلية للتكرار","عشوائية لكل طلب، كي لا يطغى نمط إخفاق واحد"],a:2},
+ {d:"prompting",l:1,q:"ينصّ أمر النظام (system prompt) على أن الوكيل (agent) يجب ألا يصل أبدًا إلى النظام المصرفي الأساسي (core banking). ما الذي يفرض ذلك فعليًا؟",o:["أمر النظام نفسه — النماذج تلتزم بالمحظورات الصريحة بشكل موثوق","طبقة الأمان لدى المزوّد، التي تحجب الطلبات إلى أنظمة لم يُصرَّح بها قط","قائمة الأدوات المحظورة (denied tools) في السياسة (policy)، تُفرض بالكود لا بالأمر","مراجعة الامتثال الفصلية، التي تكتشف المخالفات بعد وقوعها"],a:2},
+ {d:"tools",l:1,q:"عندما «يستدعي» النموذج أداة (tool)، من الذي ينفّذ الإجراء فعليًا؟",o:["النموذج يشغّلها داخل بيئة معزولة (sandbox) في مركز بيانات المزوّد","كود الإطار المشغِّل (harness) لديك — النموذج يُصدر طلبًا مهيكلًا فقط","سجل MCP (MCP registry) ينفّذها ويبثّ النتائج إلى النموذج","بيئة التشغيل (runtime) لإطار الوكلاء الذي بُني عليه النظام"],a:1},
+ {d:"tools",l:1,q:"لماذا تهمّ جودة وصف الأداة (tool description) إلى هذا الحد؟",o:["تُعرض الأوصاف للمستخدمين النهائيين في كل مرة يستدعي فيها الوكيل الأداة نيابةً عنهم","مدقّق المخطط (schema validator) يرفض الأدوات ذات الأوصاف القصيرة جدًا","الأوصاف الجيدة تقلّل استهلاك الـtokens في كل استدعاء لاحق","النموذج يختار الأدوات بقراءة أوصافها؛ والنص المبهم يسبّب استدعاء الأداة الخطأ"],a:3},
+ {d:"tools",l:1,q:"لماذا يصنّف هذا الإطار كل أداة على أنها READ أو MUTATE؟",o:["لإبقاء سجلات التدقيق (audit logs) قابلة للإدارة بتصفية ضجيج عمليات القراءة","عمليات MUTATE تخضع لمتطلبات موافقة وتحتاج إلى عدم التكرار (idempotency)","أدوات READ أرخص تنفيذًا، فيستطيع الموجّه (router) تجميعها في دفعات","إنه عُرف في أسلوب كتابة الكود لتمييز نقاء الدوال (function purity)"],a:1},
+ {d:"retrieval",l:1,q:"لماذا يجب أن تحمل كل إجابة مستندة إلى البيانات استشهادات (citations) (الأداة + السجل)؟",o:["تجعل الإجابات تبدو أكثر مصداقية واحترافية للمستخدمين","الجهات الرقابية تشترط الاستشهادات على جميع مخرجات الذكاء الاصطناعي في الخدمات المالية","ليتمكن الإنسان من التحقق من الادعاء — الادعاءات غير الموثّقة تنشر الهلوسة (hallucinations)","تُبقي النموذج مرتكزًا على الحقائق عبر المحادثات الطويلة متعددة الأدوار"],a:2},
+ {d:"retrieval",l:1,q:"متى يكون RAG الأداة الخطأ؟",o:["عندما تكون المستندات بالعربية وتحتاج إلى محلّلات (analyzers) خاصة","للبيانات الحيّة أو العمليات الحسابية — مكانها أداة استعلام (query tool)","عندما تتجاوز مجموعة المستندات (corpus) نحو ألف مستند","عندما يجب أن تعود الإجابات ضمن ميزانية صارمة لزمن الاستجابة (latency) أقل من ثانية"],a:1},
+ {d:"retrieval",l:2,q:"فهرس متجهات (vector index) واحد لكل مستندات البنك — ما خطر حدود البيانات (data boundary)؟",o:["يتدهور زمن الاستعلام مع كل مجموعة مستندات جديدة تُضاف","يمكن للمهاجمين عكس التضمينات (embeddings) إلى نص مقروء","إعادة بناء الفهرس تتطلب توقفًا يطول مع حجم المستندات","يقدّم المحتوى وفق مستوى تصريح أكثر مستنداته حساسية"],a:3},
+ {d:"orch",l:2,q:"الموقف المعماري الافتراضي لحالة استخدام جديدة هو…",o:["حلقة وكيل كاملة (agent loop)، فهذا ما بُنيت منصات الوكلاء الحديثة وحُسّنت من أجله","أبسط نمط يؤدي الغرض — معظم مشكلات الوكلاء هي في الحقيقة مشكلات سير عمل (workflow)","وكيل متخصص لكل إدارة، يعكس الهيكل التنظيمي","أي نمط تستخدمه البنية المرجعية (reference architecture) لأقوى مورّد"],a:1},
+ {d:"orch",l:2,q:"لماذا تفضّل عمليات النشر الخاضعة للتنظيم الرسومَ البيانية الصريحة (explicit graphs) على حلقات الوكيل الحرة؟",o:["الرسوم البيانية تُنفَّذ أسرع لأن خطواتها يمكن تجميعها مسبقًا","الحلقات الحرة ضعيفة الدعم في الأطر الحالية","كل مسار عبر سير العمل قابل للحصر — وهذا ما يحتاجه المدقّق","الرسوم البيانية تستهلك tokens أقل بكثير بتجنّب إعادة التخطيط في كل خطوة"],a:2},
+ {d:"orch",l:2,q:"لماذا يُفضَّل نمط التخطيط ثم التنفيذ (Plan-and-Execute) على ReAct الحر في البنك؟",o:["إنه النمط الأحدث ويحظى بدعم أفضل في الـSDKs الحالية","يمكن مراجعة الخطة قبل التنفيذ من قِبل إنسان أو سياسة","أوقف كبار مورّدي الأطر دعم ReAct","يلغي الحاجة إلى LLM أثناء مرحلة التنفيذ"],a:1},
+ {d:"mcp",l:2,q:"ما الطبقة التي يوحّد MCP معاييرها؟",o:["التفاوض والتفويض بين الوكلاء عبر المؤسسات","تبادل مجموعات بيانات التقييم بين مزوّدي النماذج","ربط الوكيل بالأدوات والبيانات — الطبقة الرأسية (vertical layer)","تسوية المدفوعات وقياس الاستخدام بين الوكلاء"],a:2},
+ {d:"mcp",l:2,q:"يغطّي A2A v1.0 (Linux Foundation، 2026)…",o:["طبقة ربط الأدوات نفسها التي يغطيها MCP، من مجموعة منافسة","التواصل بين الوكلاء عبر منصات مختلفة، مع بطاقات وكيل موقّعة (signed Agent Cards)","جدولة وتخصيص سعة وحدات GPU بين أحمال العمل","صيغة قياسية للرسائل والنصوص في محادثات متعددة الوكلاء"],a:1},
+ {d:"mcp",l:2,q:"ما الذي لا يحلّه MCP لك عن قصد؟",o:["مخططات الأدوات (tool schemas)، التي لا يزال كل إطار يعرّفها بطريقته غير المتوافقة","أمن النقل (transport security)، الذي يجب إضافته كطبقة منفصلة","بثّ النتائج (streaming)، الذي يحتاج إلى بروتوكول مخصص","الصلاحية (authority) — فهو ينقل القدرة؛ وطبقة السياسة لديك تقرّر هل يُسمح بها"],a:3},
+ {d:"hitl",l:0,q:"مستوى الاستقلالية (autonomy level) L2 (الموافقة) يعني…",o:["الوكيل معطّل وتُعاد مهامه إلى طوابير العمل البشرية","الوكيل يقترح؛ وإنسان مسمّى يوافق قبل التنفيذ","الوكيل يتصرف بحرية ويرفع تقريرًا موجزًا كل شهر","يجب أن يتفق وكيلان مستقلان قبل تنفيذ أي إجراء"],a:1},
+ {d:"hitl",l:2,q:"أي قاعدة مُثبّتة في الكود (hard-coded) ولا يمكن لملف سياسة الوكيل تجاوزها أبدًا؟",o:["لا يجوز للوكلاء إرسال إشعارات خارج ساعات العمل","كل استدعاء أداة (tool call) يتطلب موافقة مسجّلة، أيًا كان نوع العملية","عمليات MUTATE على بيانات CONFIDENTIAL أو RESTRICTED تتطلب دائمًا موافقة بشرية","لا يجوز توجيه حالات التصعيد (escalations) إلا إلى أدوار داخل الإدارة نفسها"],a:2},
+ {d:"hitl",l:2,q:"نمط الإخفاق الرئيسي للتحكم القائم على الموافقات هو…",o:["الموافقات تضيف تأخيرًا كبيرًا للعمليات المصرفية الحرجة زمنيًا","إرهاق الموافقات (approval fatigue) — المعتمِدون الغارقون يتوقفون عن القراءة؛ تابِع معدلات التجاوز (override rates)","المعتمِدون عادةً لا يملكون صلاحية الوصول إلى الأنظمة التي يجري تغييرها","تكبر طوابير الموافقات بما يتجاوز قدرة تخزين سجلات التدقيق"],a:1},
+ {d:"evals",l:3,q:"لماذا لا يكفي تشغيل اختبار ناجح واحد للحكم على وكيل؟",o:["بيئات الاختبار نادرًا ما تطابق إعدادات الإنتاج","المخرجات غير حتمية (non-deterministic) — أنت تقيس السلوك عبر تشغيلات كثيرة","بل يكفي؛ الوكلاء برمجيات عادية من هذه الناحية","المزوّدون يحدّثون أوزان النماذج كثيرًا بحيث تنتهي صلاحية النتائج سريعًا"],a:1},
+ {d:"evals",l:3,q:"أرخص مستويات التقييم (eval tier) وأكثرها موضوعية — حيث ينتمي السلوك الحرج للامتثال — هو…",o:["تقييم النموذج كحَكَم (LLM-as-judge) وفق معايير تقييم (rubric) معايَرة بعناية","لجنة مراجعة بشرية متناوبة تأخذ عيّنات من محادثات الإنتاج أسبوعيًا","تقييمات رضا المستخدمين المرفقة بكل مهمة مكتملة","تأكيدات حتمية (deterministic assertions): الأداة الصحيحة، المخطط يُحلَّل، تم التصعيد، تم الرفض"],a:3},
+ {d:"evals",l:3,q:"متى يجب تشغيل مجموعة التقييمات (eval suite)؟",o:["فصليًا، بالتوافق مع تقويم مراجعة مخاطر النماذج","قبل كل إصدار رئيسي، ضمن اختبارات الانحدار (regression testing)","عند كل تغيير في الأوامر أو السياسات أو الأدوات أو تثبيت إصدارات النماذج (model pins)","بعد كل حادثة، للتأكد من إصلاح ذلك الإخفاق تحديدًا"],a:2},
+ {d:"cicd",l:3,q:"«وضع الظل (shadow mode)» يعني…",o:["الوكيل يعمل فقط خارج ساعات الذروة للحدّ من التعرّض","L0 على حركة حقيقية: مدخلات حقيقية، بلا أي أثر، والبشر يقارنون","نسخة تجريبية (staging) مقنّعة من الإنتاج تُستخدم للاختبار النهائي","وحدة تحكم مخفية للمشغّل لفحص استدلال الوكيل"],a:1},
+ {d:"cicd",l:3,q:"إصدارات النماذج في بيئة الإنتاج يجب أن تكون…",o:["مضبوطة على 'latest' كي تصل التحسينات وتصحيحات الأمان تلقائيًا","متروكة للقيمة الافتراضية في الـSDK، التي تتبع الفئة المستقرة لدى المزوّد","تُبدَّل دوريًا كي لا يصبح أي إصدار بعينه تبعيةً (dependency)","مثبّتة (pinned) لكل وكيل ولكل بيئة؛ والترقيات تمر عبر تقييمات الظل (shadow evals)"],a:3},
+ {d:"cicd",l:3,q:"التراجع (rollback) عن وكيل يسيء التصرف يجب أن يستغرق…",o:["دورة عمل (sprint) كاملة — إعادة بناء الخدمة واختبارها ونشرها من جديد","دقائق: إصدار السياسة السابق وتثبيت النموذج السابق، دون نشر أي كود","قرار لجنة أولًا، لأن التراجع يغيّر السلوك","غير ممكن — سلوك LLM لا يمكن إخضاعه للتحكم بالإصدارات"],a:1},
+ {d:"obs",l:3,q:"أثر التدقيق (audit trail) مقابل بيانات القياس التشغيلية (operational telemetry)…",o:["تدفّق الأحداث نفسه معروضًا على لوحتين بنطاقين مختلفين","بيانات القياس تحلّ محل التدقيق بمجرد أن يصبح التتبّع (tracing) مفصّلًا بما يكفي","نظامان بمستهلكين وقواعد احتفاظ وصلاحيات وصول مختلفة","لا يُرجَع إلى التدقيق إلا عند التحقيق في حادثة"],a:2},
+ {d:"obs",l:3,q:"ارتفاع مفاجئ في أحداث BLOCK من الحواجز الوقائية (guardrails) يشير على الأرجح إلى…",o:["أن الضوابط تعمل كما صُمّمت؛ ولا حاجة لأي متابعة","مستخدمين يحتاجون إلى توجيه إضافي في صياغة طلباتهم بشكل صحيح","ضغط على تخزين السجلات سيزول بعد التدوير المعتاد","هجوم أو تراجع في الأداء (regression) — شذوذ سلوكي يستحق تنبيهًا"],a:3},
+ {d:"obs",l:3,q:"«تمرين إعادة البناء (reconstruction drill)» يثبت أن…",o:["النسخ الاحتياطية تُستعاد بشكل صحيح ضمن نافذة الاسترداد الموعودة","السجلات وحدها تكفي لإعادة بناء السلسلة السببية الكاملة لمهمة، بما فيها الإصدارات","النموذج يعيد إنتاج مخرجات مطابقة عند إعادة تشغيل الطلب","لوحات المتابعة تعكس حالة الإنتاج في الوقت شبه الفعلي"],a:1},
+ {d:"sec",l:4,q:"الدفاع الذي يصمد حتى بعد فشل كل مرشّحات الحقن (injection filters) هو…",o:["مكتبة محدّثة باستمرار لأنماط كشف الحقن","أوامر نظام أطول تحمل تعليمات أمنية صريحة ومفصّلة","نطاق ضرر محدود (bounded blast radius): قائمة السماح (allowlist) × سقف البيانات × سقف الاستقلالية","تدوير كل بيانات اعتماد (credentials) الوكلاء وفق جدول أقصر بكثير"],a:2},
+ {d:"sec",l:4,q:"حقن الأوامر غير المباشر (indirect prompt injection) يصل عبر…",o:["مربع المحادثة فقط، ولهذا وُجدت تصفية المدخلات","المحتوى الذي يقرؤه الوكيل — المستندات، ورسائل البريد، ونتائج الأدوات","برمجيات ثابتة (firmware) مخترقة في البنية التحتية للاستدلال (inference)","أوزان مسمومة أُدخلت أثناء الضبط الدقيق (fine-tuning) للنموذج"],a:1},
+ {d:"sec",l:4,q:"هوية الوكيل (agent identity) المطبّقة بشكل صحيح تعني…",o:["حساب خدمة مشترك واحد، لإبقاء مراجعات الصلاحيات بسيطة","استخدام كل وكيل لبيانات الاعتماد الشخصية لمطوّره لضمان التتبّع","تطبيق ضوابط الهوية على الوكلاء الموجّهين للعملاء فقط","هوية عبء عمل (workload identity) لكل وكيل، وبيانات اعتماد قصيرة العمر، وإعادة اعتماد دورية (recertification)"],a:3},
+ {d:"gov",l:0,q:"عندما يرتكب وكيل خطأً مكلفًا، تقع المساءلة (accountability) على…",o:["مورّد النموذج، بموجب شروط اتفاقية الخدمة","المالك البشري المسمّى الذي يعمل بموجب صلاحية مفوَّضة","لا أحد — إنه قيد معترف به في هذه التقنية","المستخدم الذي أطلق طلبُه إجراءَ الوكيل"],a:1},
+ {d:"gov",l:4,q:"ملف السياسة YAML مع سجل git للفرع المحمي (protected branch) يؤدي دور…",o:["وسيلة مريحة للمطوّرين لإبقاء الأوامر تحت التحكم بالإصدارات","نسخة احتياطية قابلة للاستعادة من أوامر النظام ضد التعديلات العرضية","سجل التغيير والموافقة الموجّه للجهات الرقابية — السياسة ككود (policy as code)","مدخلات تدريب منتقاة للضبط الدقيق لنماذج البنك الخاصة"],a:2},
+ {d:"gov",l:4,q:"يكسب الوكيل مزيدًا من الاستقلالية عبر…",o:["تسعين يومًا من التشغيل في الإنتاج دون أي شكوى من المستخدمين","حزمة أدلة (evidence pack) — تقييمات، ومعدلات تجاوز — يُتحقق منها ويُصادَق عليها","اعتماد النموذج الأساسي من قِبل مورّد المنصة","موافقة خطية من الرئيس التنفيذي تغطي حالة الاستخدام تلك ونطاقها"],a:1},
+ {d:"lead",l:5,q:"حالات الاستخدام الأولى الصحيحة في الإنتاج هي…",o:["العروض الأكثر ظهورًا، لبناء زخم مبكر على مستوى مجلس الإدارة","قرارات ائتمان العملاء، حيث العائد هو الأكبر بوضوح","عمليات كبيرة الحجم منخفضة المخاطر ذات خط أساس (baseline) قابل للقياس","قدرات أعلنها المنافسون القريبون بالفعل"],a:2},
+ {d:"lead",l:5,q:"في قرار البناء مقابل الشراء (build-vs-buy)، الطبقة التي يجب أن تملكها دائمًا هي…",o:["الـLLM نفسه، لأن جودة النموذج الخام هي الميزة التنافسية الحقيقية","طبقة الحوكمة (governance) — فهي ترمّز قواعدك وتبقى بعد تغيّر المورّدين","واجهة المحادثة، التي تحدد تجربة المستخدم","البنية التحتية لوحدات GPU، للتحكم في التكلفة وإقامة البيانات (data residency)"],a:1},
+ {d:"lead",l:5,q:"تكون «بطلًا» (hero) (L5) عندما…",o:["تكون قد أكملت مجموعة الوثائق كاملة واجتزت جميع اختباراتها","تحمل شهادات الذكاء الاصطناعي من مزوّدي السحابة الثلاثة الكبار","يصل أحد وكلائك إلى مستوى الاستقلالية L3 في الإنتاج","أوصلت وكيلًا واحدًا عبر الخطوات السبع كلها ودرّبت دفعة (cohort)"],a:3},
+ {d:"prompting",l:1,q:"مقارنةً بنص إنجليزي مكافئ، يكلّف النص العربي على المُجزِّئات (tokenizers) الشائعة عادةً…",o:["تقريبًا القدر نفسه — المُجزِّئات الحديثة محايدة لغويًا","عددًا أقل من الـtokens، لأن الخط العربي أكثر إيجازًا","من 1.5 إلى 3 أضعاف الـtokens — ضع الميزانية وفق مزيج اللغات الفعلي لديك","يعتمد على اللهجة لدرجة تجعل وضع الميزانية غير عملي إطلاقًا"],a:2},
+ {d:"retrieval",l:2,q:"تقييمات RAG لديك تنجح على استعلامات اختبار بالعربية الفصحى (MSA). ما الذي لم يُختبر بعد؟",o:["لا شيء مهم — تغطية الفصحى تُعمَّم على اللهجات","الاستعلامات باللهجات والمختلطة لغويًا (code-switched) — وهي القاعدة في حركة الاستخدام الخليجية","لم يتبقَّ سوى توصيف زمن الاستجابة والتكلفة بالكامل","الاستعلامات بالإنجليزية، التي تتطلب فهرسًا منفصلًا"],a:1},
+ {d:"orch",l:2,q:"كم تستهلك الأنظمة متعددة الوكلاء (multi-agent) من الـtokens عادةً مقارنةً بتفاعل محادثة بسيط؟",o:["القدر نفسه تقريبًا، لأن السياق مشترك بين الوكلاء","النصف تقريبًا — الوكلاء المتوازيون يتجنبون إعادة التخطيط المتكررة","متغيّر جدًا بين أحمال العمل بحيث لا يفيد في قرارات التصميم","نحو 15 ضعفًا، والوكيل المنفرد بالفعل نحو 4 أضعاف"],a:3},
+ {d:"sec",l:4,q:"وكيل يجمع بين الوصول إلى بيانات خاصة، والتعرّض لمحتوى غير موثوق، والقدرة على التواصل خارجيًا. الحل هو…",o:["نشر مصنّفات (classifiers) أقوى لكشف الحقن عند حدود المدخلات","كسر أحد الأضلاع معماريًا — هذا الجمع قابل للاستغلال","إضافة تسجيل شامل كي يصبح الاستغلال قابلًا للكشف","نقل الوكيل إلى نموذج أكبر بقدرة حكم أفضل"],a:1},
+];
+
+/* Evidence items: {id, lvl, text, d:[disciplines practiced]} — gates from the curriculum */
+const EV = [
+ {id:"e0a",lvl:"L0",text:"شغّلت الإطار من البداية إلى النهاية (npm test، npm run simulate) وتتبّعت طلبًا واحدًا من الموجّه (router) إلى سجل التدقيق (audit log)",d:[]},
+ {id:"e0b",lvl:"L0",text:"قرأت ملف سياسة YAML كاملًا وأستطيع أن أذكر ما لا يمكن للوكيل فعله أبدًا وأين يُفرض ذلك",d:[]},
+ {id:"e1a",lvl:"L1",text:"دمجت أداة جديدة مع تسجيلها في البيان (manifest) واختبارات إيجابية وسلبية معًا (رفض قائمة السماح)، بمراجعة الأقران — بوابة L1",d:["tools"]},
+ {id:"e1b",lvl:"L1",text:"بنيت مُستخرِجًا للمخرجات المهيكلة (structured output) يتحقق من المخطط (schema) مع مسار مُثبَت للرفض وإعادة المحاولة",d:["tools","prompting"]},
+ {id:"e1c",lvl:"L1",text:"بنيت سكربت API متدفقًا (streaming) متعدد الأدوار مع إعادة محاولة بتراجع تدريجي (backoff) وسقف صارم للتكلفة",d:["prompting"]},
+ {id:"e1d",lvl:"L1",text:"بنيت نظام RAG صغيرًا (مثل ask-the-playbook) مع استشهادات ورفض صادق للأسئلة غير المسندة",d:["retrieval"]},
+ {id:"e2a",lvl:"L2",text:"بنيت وكيلًا متخصصًا كاملًا: سياسة YAML، وأمر (prompt)، وتسجيل في الموجّه، وتصعيد (escalation) مُثبَت باختبار تكامل — الجزء 1 من بوابة L2",d:["orch","hitl"]},
+ {id:"e2b",lvl:"L2",text:"بنيت سير عمل متعدد الوكلاء عبر ناقل الرسائل (message bus) مع correlationId واحد يربط كل خطوة في سجل التدقيق — الجزء 2 من بوابة L2",d:["orch"]},
+ {id:"e2c",lvl:"L2",text:"غلّفت أداة كخادم MCP واستدعيتها من عميل خارجي",d:["mcp"]},
+ {id:"e2d",lvl:"L2",text:"بنيت دورة الموافقة الكاملة: مسارا الموافقة والرفض معًا مُتحقَّق منهما في سجل التدقيق وسلوك الوكيل",d:["hitl"]},
+ {id:"e3a",lvl:"L3",text:"بنيت مجموعة ذهبية (golden dataset) (30 حالة على الأقل) مع مُشغِّل يتحكم في بوابة CI — المشروع الرئيسي لـL3",d:["evals"]},
+ {id:"e3b",lvl:"L3",text:"بنيت مجموعة عدائية (adversarial suite) (15 حالة فريق أحمر على الأقل) تتحقق من نتائج آمنة محددة، موصولة بـCI",d:["evals","sec"]},
+ {id:"e3c",lvl:"L3",text:"بنيت خط الترقية (promotion pipeline) ونفّذت تراجعًا (rollback) (السياسة + تثبيت النموذج) على بيئة عاملة",d:["cicd"]},
+ {id:"e3d",lvl:"L3",text:"صدّرت تتبّعات OTel، وبنيت لوحة متابعة لكل وكيل (6 لوحات فرعية على الأقل)، وأضفت مقاييس التكلفة",d:["obs"]},
+ {id:"e3e",lvl:"L3",text:"أجريت تمرين الفوضى (chaos drill) وتمرين مفتاح الإيقاف (kill switch) مع نتائج مكتوبة",d:["cicd","obs"]},
+ {id:"e3f",lvl:"L3",text:"اجتزت تمرين إعادة البناء: السلسلة السببية الكاملة من السجلات وحدها في أقل من 30 دقيقة",d:["obs"]},
+ {id:"e4a",lvl:"L4",text:"أعددت نموذج تهديدات (threat model) بأسلوب STRIDE لوكيل مع تحليل لنطاق الضرر المحدود، راجعه فريق الأمن",d:["sec"]},
+ {id:"e4b",lvl:"L4",text:"أكملت تمرين فريق أحمر (red team) ثنائيًا (مهاجمًا أو مدافعًا) مع تقرير نتائج مكتوب",d:["sec"]},
+ {id:"e4c",lvl:"L4",text:"قوّيت حاجزًا وقائيًا (guardrail) في الكود (مثل كشف حقيقي لبيانات PII يشمل حالات عربية) مع اختبارات",d:["sec","tools"]},
+ {id:"e4d",lvl:"L4",text:"ألّفت مُخرَجًا للحوكمة اعتمدته اللجنة رسميًا (ميثاق، أو قائمة تحقق للمصادقة، أو قالب حزمة أدلة)",d:["gov"]},
+ {id:"e4e",lvl:"L4",text:"أعددت خريطة تنظيمية (QCB أو PDPPL): الالتزام ← الضابط ← الدليل ← الفجوة، مع إدراج الفجوات في قائمة الأعمال (backlog)",d:["gov"]},
+ {id:"e5a",lvl:"L5",text:"أنجزت مشروعًا ختاميًا (capstone): عملية حقيقية واحدة عبر خطوات دورة الحياة السبع كلها (قرار مضيّ أو عدم مضيّ موثّق)",d:["lead"]},
+ {id:"e5b",lvl:"L5",text:"درّست وحدة واحدة على الأقل من هذا المنهج ضمن دفعة",d:["lead"]},
+];
+/* Level attainment requirements (evidence ids). L4 passes on either the engineering or governance path. */
+const LVL_REQ = [
+ {lvl:"L0",need:["e0a","e0b"]},
+ {lvl:"L1",need:["e1a"]},
+ {lvl:"L2",need:["e2a","e2b"]},
+ {lvl:"L3",need:["e3a","e3b","e3f"]},
+ {lvl:"L4",anyOf:[["e4a","e4b"],["e4d","e4e"]]},
+ {lvl:"L5",need:["e5a","e5b"]},
+];
+
+/* ─── State ──────────────────────────────────────────────────────────── */
+/* Same storage key as the English page: progress is shared between the two languages. */
+const KEY = "qdb-agent-assessment-v1";
+let S = { name:"", role:"developer", answers:{}, evidence:{}, teach:{}, seed:0 };
+try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(S, JSON.parse(raw)); } catch(e){}
+if (!S.seed) { S.seed = Math.floor(Math.random()*2**31) || 1; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+
+function save(){
+  S.name = document.getElementById("p-name").value;
+  S.role = document.getElementById("p-role").value;
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){}
+}
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+/* ─── Render inputs ──────────────────────────────────────────────────── */
+/* Deterministic per-browser option shuffle: kills position bias while keeping
+   stored answers (original indices) stable across reloads. */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function optionOrder(qIndex, n){
+  const rnd = mulberry32((S.seed>>>0) + qIndex*7919);
+  const order = Array.from({length:n},(_,j)=>j);
+  for (let k=n-1; k>0; k--){ const r = Math.floor(rnd()*(k+1)); [order[k],order[r]]=[order[r],order[k]]; }
+  return order;
+}
+function renderKnowledge(){
+  const el = document.getElementById("k-list");
+  el.innerHTML = QS.map((q,i)=>`
+    <div class="q">
+      <div class="meta">السؤال ${i+1} · <bdi dir="ltr">L${q.l}</bdi> · ${DISC.find(d=>d.id===q.d).name}</div>
+      <div class="qt">${q.q}</div>
+      ${optionOrder(i, q.o.length).map(j=>`
+        <label class="opt"><input type="radio" name="q${i}" value="${j}" ${S.answers[i]===j?"checked":""}
+          onchange="S.answers[${i}]=${j};save();kProgress()"> <span>${q.o[j]}</span></label>`).join("")}
+    </div>`).join("");
+  kProgress();
+}
+function kProgress(){
+  const n = Object.keys(S.answers).length;
+  document.getElementById("k-progress").textContent = `أُجيب عن ${n} من ${QS.length}`;
+}
+function renderEvidence(){
+  document.getElementById("e-list").innerHTML = EV.map(e=>`
+    <label class="ev"><input type="checkbox" ${S.evidence[e.id]?"checked":""}
+      onchange="S.evidence['${e.id}']=this.checked;save()">
+      <span class="lvl" dir="ltr">${e.lvl}</span><span>${e.text}</span></label>`).join("");
+  document.getElementById("t-list").innerHTML = DISC.map(d=>`
+    <label class="ev"><input type="checkbox" ${S.teach[d.id]?"checked":""}
+      onchange="S.teach['${d.id}']=this.checked;save()">
+      <span>${d.name} <span style="color:var(--muted)">(<bdi dir="ltr">${d.mods}</bdi>)</span></span></label>`).join("");
+}
+
+/* ─── Scoring ────────────────────────────────────────────────────────── */
+function computeRatings(answers, evidence, teach){
+  const ratings = {}, detail = {};
+  for (const d of DISC){
+    const qs = QS.map((q,i)=>({q,i})).filter(x=>x.q.d===d.id);
+    const correct = qs.filter(x=>answers[x.i]===x.q.a).length;
+    const aware = correct >= Math.ceil(qs.length*2/3);   // ≥2/3 of the discipline's questions
+    const practiced = EV.some(e=>e.d.includes(d.id) && evidence[e.id]);
+    let r = 0;
+    if (aware || practiced) r = 1;
+    if (practiced) r = 2;
+    if (r===2 && teach[d.id]) r = 3;
+    ratings[d.id] = r;
+    detail[d.id] = { correct, of: qs.length, practiced, teach: !!teach[d.id] };
+  }
+  return { ratings, detail };
+}
+function evidenceLevel(evidence){
+  let level = "—";
+  for (const L of LVL_REQ){
+    const ok = L.need ? L.need.every(id=>evidence[id])
+                      : L.anyOf.some(set=>set.every(id=>evidence[id]));
+    if (ok) level = L.lvl; else break;
+  }
+  return level;
+}
+function knowledgeByLevel(answers){
+  const out = {};
+  for (const q of QS){ const k="L"+q.l; out[k]=out[k]||{c:0,n:0}; out[k].n++; if(answers[QS.indexOf(q)]===q.a) out[k].c++; }
+  return out;
+}
+
+/* ─── Results ────────────────────────────────────────────────────────── */
+function meter(r){
+  return `<span class="meter" role="img" aria-label="التقييم ${r} من 3">`+
+    [1,2,3].map(i=>`<span class="${r>=i?("f"+i):""}"></span>`).join("")+`</span> <b>${r}</b>`;
+}
+function computeResults(){
+  save();
+  const { ratings, detail } = computeRatings(S.answers, S.evidence, S.teach);
+  const target = TARGETS[S.role];
+  const evLvl = evidenceLevel(S.evidence);
+  const kByL = knowledgeByLevel(S.answers);
+  const totalCorrect = QS.filter((q,i)=>S.answers[i]===q.a).length;
+
+  const gaps = DISC.filter(d=>ratings[d.id] < target[d.id])
+    .sort((a,b)=>(target[b.id]-ratings[b.id])-(target[a.id]-ratings[a.id]));
+  const met = DISC.filter(d=>target[d.id]>0 && ratings[d.id]>=target[d.id]);
+
+  /* next level to work toward */
+  const order = ["—","L0","L1","L2","L3","L4","L5"];
+  const nextLvl = order[Math.min(order.indexOf(evLvl)+1, 6)];
+  const nextReq = LVL_REQ.find(l=>l.lvl===nextLvl);
+  const nextItems = nextReq ? (nextReq.need||nextReq.anyOf.flat()).filter(id=>!S.evidence[id])
+      .map(id=>EV.find(e=>e.id===id).text) : [];
+
+  const rowsHtml = DISC.map(d=>{
+    const r = ratings[d.id], t = target[d.id];
+    const st = t===0 ? `<span class="pill" style="color:var(--muted)">غير مطلوب</span>`
+      : r>=t ? `<span class="pill good">✓ مُحقَّق</span>`
+      : (r===t-1 ? `<span class="pill warn">△ قريب</span>` : `<span class="pill bad">✗ فجوة</span>`);
+    const k = detail[d.id];
+    return `<tr><td>${d.name}</td><td>${meter(r)}</td><td class="num">${t}</td><td>${st}</td>
+      <td style="color:var(--muted)">المعرفة ${k.correct} من ${k.of}${k.practiced?" · أدلة ✓":""}${k.teach?" · درّس ✓":""}</td></tr>`;
+  }).join("");
+
+  const gapsHtml = gaps.length===0
+    ? `<p><span class="pill good">✓</span> أنت تحقق كل الأهداف المطلوبة لدورك أو تتجاوزها. هدف البرنامج بعد ذلك: الوصول إلى مستوى «قادر على التدريس» (3) وتدريس دفعة.</p>`
+    : gaps.map(d=>`<div class="gap-item"><b>${d.name} — مستواك ${ratings[d.id]}، والمستهدف ${target[d.id]}</b>
+        <div class="why">${ratings[d.id]===0?"ابدأ بالمفاهيم، ثم التطبيق العملي (lab).":"أنت تعرف المفاهيم — أنجز الآن مُخرَج البوابة."}
+        أنجز <b><bdi dir="ltr">${d.mods}</bdi></b>: ${d.lab}.</div></div>`).join("");
+
+  /* Missed-question review: which questions you got wrong or skipped, by discipline.
+     The correct option is deliberately NOT shown, so questions stay reusable across cohorts. */
+  const missed = QS.map((q,i)=>({q,i})).filter(x=>S.answers[x.i]!==x.q.a);
+  const missedHtml = missed.length===0
+    ? `<h3>مراجعة المعرفة</h3><p><span class="pill good">✓</span> الدرجة الكاملة — كل الإجابات صحيحة.</p>`
+    : `<h3>مراجعة المعرفة — ${missed.length} للمراجعة</h3>
+       <p class="sub">لا تُعرض الإجابات الصحيحة (لأن الأسئلة يُعاد استخدامها عبر الدفعات). ادرس الوحدة المذكورة مجددًا ثم أعد الاختبار.</p>
+       <div class="table-wrap"><table><thead><tr><th>السؤال</th><th>التخصص · المستوى</th><th>إجابتك</th></tr></thead><tbody>
+       ${missed.map(({q,i})=>{const d=DISC.find(x=>x.id===q.d);const pick=S.answers[i]==null?"<em>متروك</em>":q.o[S.answers[i]].replace(/</g,"&lt;");
+         return `<tr><td>${q.q.replace(/</g,"&lt;")}</td><td>${d.name} · <bdi dir="ltr">L${q.l}</bdi></td><td style="color:var(--muted)">${pick}</td></tr>`;}).join("")}
+       </tbody></table></div>`;
+
+  document.getElementById("r-card").innerHTML = `
+    <h2>${S.name?"نتائج "+esc(S.name):"نتائجك"} — مُقيَّم بصفة ${ROLE_NAMES[S.role]}</h2>
+    <div class="hero">
+      <div class="tile"><div class="k">المستوى المُحقَّق (بالأدلة)</div><div class="v" dir="ltr">${evLvl}</div>
+        <div class="d">البوابات المُجتازة وفق المخرجات المحدّدة</div></div>
+      <div class="tile"><div class="k">المعرفة</div><div class="v" dir="ltr">${totalCorrect}/${QS.length}</div>
+        <div class="d" dir="ltr" style="text-align:right">${Object.entries(kByL).map(([l,x])=>`${l} ${x.c}/${x.n}`).join(" · ")}</div></div>
+      <div class="tile"><div class="k">أهداف الدور المُحقَّقة</div><div class="v" dir="ltr">${met.length}/${DISC.filter(d=>target[d.id]>0).length}</div>
+        <div class="d">تخصصات بلغت المستهدف أو تجاوزته</div></div>
+    </div>
+    <h3>تقييمات التخصصات (0 لا شيء · 1 مُلمّ · 2 ممارِس · 3 قادر على التدريس)</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>التخصص</th><th>أنت</th><th>المستهدف</th><th>الحالة</th><th>الأساس</th></tr></thead>
+      <tbody>${rowsHtml}</tbody></table></div>
+    <h3>ما ينقصك — خطتك مرتّبة حسب الأولوية</h3>
+    ${gapsHtml}
+    ${nextItems.length? `<h3>للوصول إلى <bdi dir="ltr">${nextLvl}</bdi>، أنجز مخرجات البوابة التالية</h3>
+      <ul>${nextItems.map(t=>`<li>${t}</li>`).join("")}</ul>`:""}
+    ${missedHtml}
+    <p class="sub" style="margin-top:1rem">فحص الأمانة: أي تقييم 2 تدّعيه هنا يجب أن يصمد أمام مراجعة الشخص الذي راجع المُخرَج. إن لم يكن كذلك، ألغِ تحديده — فالخطة لا تنجح إلا بمدخلات صادقة.</p>`;
+  document.getElementById("r-actions").style.display = "block";
+}
+
+/* ─── Export / team ─────────────────────────────────────────────────── */
+/* Export payload is byte-for-byte the same shape as the English page (v:1, same fields). */
+function exportJSON(){
+  const { ratings, detail } = computeRatings(S.answers, S.evidence, S.teach);
+  const payload = { v:1, toolVersion: TOOL_VERSION, name:S.name||"anonymous", role:S.role,
+    level: evidenceLevel(S.evidence),
+    knowledge: QS.filter((q,i)=>S.answers[i]===q.a).length + "/" + QS.length,
+    ratings, detail, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `assessment-${(S.name||"anon").toLowerCase().replace(/\s+/g,"-")}.json`;
+  a.click();
+}
+let TEAM = [];
+function addTeamResult(obj){
+  if (obj && obj.ratings && obj.role) { TEAM = TEAM.filter(t=>t.name!==obj.name); TEAM.push(obj); }
+}
+function loadTeamFiles(files){
+  let pending = files.length;
+  for (const f of files){
+    const r = new FileReader();
+    r.onload = () => { try{ addTeamResult(JSON.parse(r.result)); }catch(e){} if(--pending===0) renderTeam(); };
+    r.readAsText(f);
+  }
+}
+function loadTeamPaste(){
+  const raw = document.getElementById("team-paste").value.trim();
+  try {
+    const v = JSON.parse(raw);
+    (Array.isArray(v)?v:[v]).forEach(addTeamResult);
+  } catch(e){
+    raw.split(/\n(?=\{)/).forEach(chunk=>{ try{ addTeamResult(JSON.parse(chunk)); }catch(_){} });
+  }
+  renderTeam();
+}
+function renderTeam(){
+  const el = document.getElementById("team-out");
+  if (!TEAM.length){ el.innerHTML = "<p class='sub'>لم تُحمَّل أي نتائج بعد.</p>"; return; }
+  const head = DISC.map(d=>`<th title="${d.name}">${d.short}</th>`).join("");
+  const rows = TEAM.map(p=>{
+    const t = TARGETS[p.role]||{};
+    const cells = DISC.map(d=>{
+      const r = p.ratings[d.id]||0; const gap = t[d.id]!==undefined && r < t[d.id];
+      return `<td class="num cell-r${r}" title="${d.name}: ${r} (المستهدف ${t[d.id]??"—"})">${r}${gap?" ✗":""}</td>`;
+    }).join("");
+    return `<tr><td><b>${p.name}</b><br><span style="color:var(--muted);font-size:.75rem">${ROLE_NAMES[p.role]||p.role} · <bdi dir="ltr">${p.level||"—"}</bdi></span></td>${cells}</tr>`;
+  }).join("");
+  /* program-level goals */
+  const teachCount = DISC.map(d=>TEAM.filter(p=>(p.ratings[d.id]||0)>=3).length);
+  const practCount = DISC.map(d=>TEAM.filter(p=>(p.ratings[d.id]||0)>=2).length);
+  const goalRows = DISC.map((d,i)=>{
+    const teachOk = teachCount[i]>=2, coreDisc = ["evals","hitl","obs"].includes(d.id);
+    const coreOk = !coreDisc || practCount[i]>=1;
+    return `<tr><td>${d.name}</td><td class="num">${practCount[i]}</td><td class="num">${teachCount[i]}</td>
+      <td>${teachOk?`<span class="pill good">✓ شخصان أو أكثر قادرون على التدريس</span>`:`<span class="pill warn">△ مطلوب ${2-teachCount[i]} إضافي بمستوى «قادر على التدريس»</span>`}
+      ${coreDisc&&!coreOk?` <span class="pill bad">✗ لا تغطية بمستوى ممارِس — متطلب الفريق المالك غير مُحقَّق</span>`:""}</td></tr>`;
+  }).join("");
+  el.innerHTML = `
+    <h3>مصفوفة الفريق — ${TEAM.length} أشخاص (✗ = أقل من مستهدف الدور)</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>الشخص</th>${head}</tr></thead><tbody>${rows}</tbody></table></div>
+    <h3>أهداف البرنامج (الملحق B من المنهج)</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>التخصص</th><th>ممارِس (2 فأكثر)</th><th>قادر على التدريس (3)</th><th>الحالة مقابل الأهداف</th></tr></thead>
+      <tbody>${goalRows}</tbody></table></div>
+    <p class="sub">الأهداف: شخصان على الأقل بمستوى «قادر على التدريس» في كل تخصص خلال عام (تأمين ضد الاعتماد على شخص واحد (bus factor))؛ وكل فريق مالك لوكيل يحتاج إلى شخص ممارِس واحد على الأقل في التقييمات، وتصميم الإنسان في الحلقة، وقابلية الرصد قبل أن يتولى وكيلًا في الإنتاج.</p>`;
+}
+
+/* ─── Nav / init ─────────────────────────────────────────────────────── */
+function show(tab){
+  for (const t of ["profile","knowledge","evidence","results","team"]){
+    document.getElementById("tab-"+t).classList.toggle("hide", t!==tab);
+    document.getElementById("tb-"+t).classList.toggle("active", t===tab);
+  }
+  if (tab==="results" && Object.keys(S.answers).length) computeResults();
+  window.scrollTo({top:0});
+}
+function resetAll(){
+  if (!confirm("هل تريد مسح كل الإجابات والأدلة في هذا المتصفح؟")) return;
+  try { localStorage.removeItem(KEY); } catch(e){}
+  S = { name:"", role:"developer", answers:{}, evidence:{}, teach:{}, seed: Math.floor(Math.random()*2**31)||1 };
+  document.getElementById("p-name").value=""; document.getElementById("p-role").value="developer";
+  renderKnowledge(); renderEvidence(); show("profile");
+  document.getElementById("r-card").innerHTML = "<h2>أكمل اختبار المعرفة والأدلة أولًا</h2>";
+  document.getElementById("r-actions").style.display="none";
+}
+document.getElementById("p-name").value = S.name||"";
+document.getElementById("p-role").value = S.role||"developer";
+renderKnowledge(); renderEvidence(); renderTeam();
+</script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>برنامج الذكاء الاصطناعي الوكيلي — QDB</title>
+<meta name="description" content="مركز برنامج الذكاء الاصطناعي الوكيلي في بنك قطر للتنمية (QDB): الملصق التمهيدي، والمنهج، ودليل التشغيل، وتقييم المهارات.">
+<link rel="alternate" hreflang="en" href="index.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@500;700&family=Noto+Sans+Arabic:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f6f2;--panel:#fff;--ink:#1e232c;--muted:#5b6470;--line:#e4e0d8;
+  --accent:#7a1f2b;--accent-soft:#f4e4e6;--flow:#2e6b3e;--shadow:0 1px 3px rgba(25,25,35,.08);--shadow-lg:0 8px 30px rgba(25,25,35,.1);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#14161a;--panel:#1c1f25;--ink:#e9e7e2;--muted:#9aa0aa;--line:#2c3038;
+  --accent:#dd8a94;--accent-soft:#3a2226;--flow:#82c091;--shadow:0 1px 3px rgba(0,0,0,.4);--shadow-lg:0 8px 30px rgba(0,0,0,.5);}}
+:root[data-theme="dark"]{--bg:#14161a;--panel:#1c1f25;--ink:#e9e7e2;--muted:#9aa0aa;--line:#2c3038;--accent:#dd8a94;--accent-soft:#3a2226;--flow:#82c091;--shadow:0 1px 3px rgba(0,0,0,.4);--shadow-lg:0 8px 30px rgba(0,0,0,.5);}
+:root[data-theme="light"]{--bg:#f7f6f2;--panel:#fff;--ink:#1e232c;--muted:#5b6470;--line:#e4e0d8;--accent:#7a1f2b;--accent-soft:#f4e4e6;--flow:#2e6b3e;--shadow:0 1px 3px rgba(25,25,35,.08);--shadow-lg:0 8px 30px rgba(25,25,35,.1);}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 "Noto Sans Arabic","Noto Naskh Arabic","Segoe UI",Tahoma,-apple-system,Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}
+.wrap{max-width:900px;margin:0 auto;padding:3.5rem 1.5rem 6rem;}
+.topbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem 1rem;}
+/* Arabic letters must stay joined: no letter-spacing / uppercase transform */
+.kicker{font-size:.8rem;font-weight:700;letter-spacing:0;color:var(--accent);}
+.lang{font-size:.8rem;font-weight:600;color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.1rem .7rem;}
+.lang:hover,.lang:focus-visible{color:var(--accent);border-color:var(--accent);}
+h1{font-family:"Noto Naskh Arabic","Iowan Old Style",Palatino,Georgia,serif;font-size:2.7rem;line-height:1.35;margin:.5rem 0 .5rem;letter-spacing:0;}
+h1 .hl{color:var(--accent);}
+.lede{color:var(--muted);font-size:1.08rem;max-width:60ch;margin:0 0 2.5rem;}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.1rem;}
+a.card{display:block;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--line);
+  border-radius:16px;padding:1.4rem 1.5rem;box-shadow:var(--shadow);transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease;position:relative;overflow:hidden;}
+a.card::before{content:"";position:absolute;top:0;inset-inline-start:0;width:4px;height:100%;background:var(--accent);opacity:.85;}
+a.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--accent);}
+a.card:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+.card .em{font-size:1.6rem;}
+.card h2{font-size:1.2rem;margin:.5rem 0 .3rem;}
+.card p{color:var(--muted);font-size:.9rem;margin:0 0 .6rem;}
+.card .go{font-size:.85rem;font-weight:700;color:var(--flow);}
+.span2{grid-column:1 / -1;}
+.foot{margin-top:2.5rem;color:var(--muted);font-size:.82rem;overflow-wrap:anywhere;}
+.foot a{color:var(--accent);}
+@media (max-width:640px){h1{font-size:2.05rem;}.grid{grid-template-columns:1fr;}}
+.en{white-space:nowrap;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="kicker">بنك قطر للتنمية · برنامج الذكاء الاصطناعي الوكيلي <span class="en">(Agentic AI)</span></div>
+    <a class="lang" href="index.html" lang="en" hreflang="en">English</a>
+  </div>
+  <h1>تشغيل وكلاء الذكاء الاصطناعي <span class="en">(AI agents)</span> في <span class="hl">بيئة الإنتاج</span></h1>
+  <p class="lede">كل ما تحتاجه لتشغيل الوكلاء بوصفهم موظفين رقميين خاضعين للحوكمة <span class="en">(governed)</span> في بنك خاضع للتنظيم: البرنامج، ودليل التشغيل <span class="en">(playbook)</span>، والمنهج <span class="en">(curriculum)</span>، وطريقة لتحديد مستواك مقارنةً به.</p>
+
+  <div class="grid">
+    <a class="card span2" href="on-ramp-poster.ar.html">
+      <div class="em">🗺️</div>
+      <h2>ابدأ من هنا — الملصق التمهيدي <span class="en">(on-ramp poster)</span></h2>
+      <p>الركائز الثماني لتشغيل الوكلاء في بيئة الإنتاج <span class="en">(production)</span>، في صفحة واحدة تُقرأ بنظرة: البناء · التأمين · التواصل · الحوكمة · الحواجز الوقائية · التقييم · الرصد · الإصدارات.</p>
+      <span class="go">افتح الملصق ←</span>
+    </a>
+
+    <a class="card" href="learning-path.ar.html">
+      <div class="em">🤖</div>
+      <h2>منهج من الصفر إلى الاحتراف <span class="en">(Zero-to-Hero)</span></h2>
+      <p>برنامج متدرّج من L0 إلى L5، يضم 33 وحدة <span class="en">(module)</span> مع مختبرات <span class="en">(labs)</span> عملية على إطار العمل، ومسارات حسب الدور، وبوابات <span class="en">(gates)</span> تجتازها بتسليم عمل فعلي.</p>
+      <span class="go">تعلّمه ←</span>
+    </a>
+
+    <a class="card" href="production-playbook.ar.html">
+      <div class="em">📘</div>
+      <h2>دليل التشغيل في بيئة الإنتاج <span class="en">(Production Playbook)</span></h2>
+      <p>الماذا واللماذا: البنية، والأمن، والحوكمة <span class="en">(governance)</span>، والتقييم <span class="en">(evaluation)</span>، والمنظومة التنظيمية QCB / PDPPL / الحوكمة الشرعية / EU AI Act، مربوطةً بالكود.</p>
+      <span class="go">اقرأه ←</span>
+    </a>
+
+    <a class="card span2" href="assessment.ar.html">
+      <div class="em">📊</div>
+      <h2>تقييم المهارات <span class="en">(Skills Assessment)</span></h2>
+      <p>حدّد مستواك ومستوى فريقك: اختبار معرفي إضافةً إلى بوابات أدلة <span class="en">(evidence gates)</span> تُنتج تقييمات لكل تخصص، والفجوات مقارنةً بمستهدفات الدور، وخطة مخصّصة — مع عرض تجميعي للفريق لقائد البرنامج.</p>
+      <span class="go">ابدأ التقييم ←</span>
+    </a>
+  </div>
+
+  <p class="foot">المصدر والإطار المرجعي: <a href="https://github.com/Tamoura/AI-agents" dir="ltr">github.com/Tamoura/AI-agents</a> · <code dir="ltr">qdb-agent-framework</code></p>
+</div>
+</body>
+</html>
