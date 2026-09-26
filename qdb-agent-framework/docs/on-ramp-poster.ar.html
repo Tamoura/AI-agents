@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>كيف تشغّل الوكلاء في بيئة الإنتاج — QDB</title>
+<meta name="description" content="الركائز الثماني لتشغيل وكلاء الذكاء الاصطناعي بوصفهم موظفين رقميين خاضعين للحوكمة في بنك خاضع للتنظيم — ملصق تمهيدي في صفحة واحدة.">
+<link rel="alternate" hreflang="en" href="on-ramp-poster.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@500;700&family=Noto+Sans+Arabic:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f6f2; --panel:#ffffff; --ink:#1e232c; --muted:#5b6470; --line:#e4e0d8;
+  --accent:#7a1f2b; --accent-soft:#f4e4e6; --flow:#2e6b3e; --flow-soft:#e6f0e7;
+  --chip:#f1efe9; --shadow:0 1px 3px rgba(25,25,35,.08); --shadow-lg:0 6px 24px rgba(25,25,35,.09);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#14161a; --panel:#1c1f25; --ink:#e9e7e2; --muted:#9aa0aa; --line:#2c3038;
+    --accent:#dd8a94; --accent-soft:#3a2226; --flow:#82c091; --flow-soft:#1e2c20;
+    --chip:#262a31; --shadow:0 1px 3px rgba(0,0,0,.4); --shadow-lg:0 6px 24px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+    --bg:#14161a; --panel:#1c1f25; --ink:#e9e7e2; --muted:#9aa0aa; --line:#2c3038;
+    --accent:#dd8a94; --accent-soft:#3a2226; --flow:#82c091; --flow-soft:#1e2c20;
+    --chip:#262a31; --shadow:0 1px 3px rgba(0,0,0,.4); --shadow-lg:0 6px 24px rgba(0,0,0,.45);
+}
+:root[data-theme="light"]{
+  --bg:#f7f6f2; --panel:#ffffff; --ink:#1e232c; --muted:#5b6470; --line:#e4e0d8;
+  --accent:#7a1f2b; --accent-soft:#f4e4e6; --flow:#2e6b3e; --flow-soft:#e6f0e7;
+  --chip:#f1efe9; --shadow:0 1px 3px rgba(25,25,35,.08); --shadow-lg:0 6px 24px rgba(25,25,35,.09);
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.7 "Noto Sans Arabic","Noto Naskh Arabic","Segoe UI",Tahoma,-apple-system,Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}
+.wrap{max-width:1120px;margin:0 auto;padding:2.5rem 1.5rem 5rem;}
+.topbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem 1rem;}
+/* Arabic letters must stay joined: no letter-spacing / uppercase transform */
+.kicker{font-size:.8rem;font-weight:700;letter-spacing:0;color:var(--accent);}
+.lang{font-size:.8rem;font-weight:600;color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.1rem .7rem;}
+.lang:hover,.lang:focus-visible{color:var(--accent);border-color:var(--accent);}
+h1{font-family:"Noto Naskh Arabic","Iowan Old Style",Palatino,Georgia,serif;font-size:2.9rem;line-height:1.3;margin:.5rem 0 .4rem;letter-spacing:0;}
+h1 .hl{color:var(--accent);}
+.lede{color:var(--muted);font-size:1.05rem;max-width:60ch;margin:0;}
+.contrast{margin:1.5rem 0 0;padding:.85rem 1.1rem;background:var(--accent-soft);border-radius:12px;
+  font-size:.9rem;border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);}
+.contrast b{color:var(--accent);}
+.section-label{display:flex;align-items:center;gap:.7rem;margin:3rem 0 1.1rem;}
+.section-label h2{font-size:1.15rem;margin:0;white-space:nowrap;}
+.section-label::after{content:"";flex:1;height:1px;background:var(--line);}
+figure{margin:0;}
+.hero-fig{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:1.5rem 1.25rem 1rem;box-shadow:var(--shadow-lg);}
+.hero-fig svg{width:100%;height:auto;display:block;}
+svg text{font-family:"Noto Sans Arabic","Segoe UI",Tahoma,sans-serif;}
+figcaption{color:var(--muted);font-size:.85rem;margin-top:.6rem;text-align:center;}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:1.25rem 1.25rem 1.1rem;
+  box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.card::before{content:"";position:absolute;top:0;inset-inline-start:0;width:4px;height:100%;background:var(--accent);opacity:.85;}
+.card .head{display:flex;align-items:center;gap:.7rem;margin-bottom:.15rem;}
+.num{flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;
+  display:grid;place-items:center;font-weight:800;font-size:.9rem;}
+.card h3{font-size:1.12rem;margin:0;}
+.icon{flex:none;margin-inline-start:auto;color:var(--accent);}
+.tagline{color:var(--muted);font-size:.86rem;margin:.15rem 0 .7rem;}
+.chips{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.7rem;}
+.chip{font-size:.76rem;background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:.18rem .55rem;color:var(--ink);}
+.map{font-size:.76rem;color:var(--flow);font-weight:600;border-top:1px dashed var(--line);padding-top:.55rem;}
+.map bdi{direction:ltr;unicode-bidi:isolate;}
+.ladder{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:1.4rem 1.25rem 1rem;box-shadow:var(--shadow);}
+.ladder svg{width:100%;height:auto;display:block;}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);background:var(--panel);}
+table{border-collapse:collapse;width:100%;font-size:.83rem;min-width:640px;}
+th{background:var(--accent-soft);text-align:start;font-weight:700;color:var(--ink);}
+th,td{padding:.6rem .85rem;border-bottom:1px solid var(--line);vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+td.layer{font-weight:700;white-space:nowrap;}
+td .reg{color:var(--accent);font-weight:600;}
+.foot{margin-top:3rem;padding-top:1.25rem;border-top:1px solid var(--line);color:var(--muted);font-size:.82rem;
+  display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;justify-content:space-between;}
+.foot b{color:var(--ink);}
+@media (max-width:720px){
+  h1{font-size:2.1rem;}
+  .grid{grid-template-columns:1fr;}
+  .section-label h2{white-space:normal;}
+}
+@media print{
+  body{background:#fff;color:#000;}
+  .lang{display:none;}
+  .card,.hero-fig,.ladder,.table-wrap{box-shadow:none;break-inside:avoid;}
+  .section-label{break-after:avoid;}
+}
+.en{white-space:nowrap;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="topbar">
+      <div class="kicker">برنامج الذكاء الاصطناعي الوكيلي في QDB · المدخل التمهيدي <span class="en">(On-ramp)</span></div>
+      <a class="lang" href="on-ramp-poster.html" lang="en" hreflang="en">English</a>
+    </div>
+    <h1>كيف <span class="hl">تشغّل</span> الوكلاء في بيئة الإنتاج</h1>
+    <p class="lede">الركائز الثماني لتشغيل الوكلاء <span class="en">(agents)</span> بوصفهم موظفين رقميين خاضعين للحوكمة في بنك خاضع للتنظيم — وهو نصف العمل الذي تُغفله أدلة "كيف تبني وكيلًا".</p>
+    <div class="contrast">
+      تتوقف أدلة البناء عند <b>"إنه يعمل على جهازي."</b> أما البنك فلا يطلق شيئًا إلا إذا أجاب كتابيًا عن ثلاثة أسئلة: <b>ما أسوأ ما يمكن أن يفعله هذا الوكيل، ومن يراجعه، وكيف نوقفه.</b> هذا الملصق هو تلك الإجابات، في صفحة واحدة.
+    </div>
+  </header>
+
+  <div class="section-label"><h2>الفكرة الجوهرية</h2></div>
+  <figure class="hero-fig">
+    <svg viewBox="0 0 760 240" role="img" aria-label="يتدفق الطلب من النموذج الذي يقترح إجراءً؛ ويقرر محرّك السياسات بناءً على قائمة السماح وسقف البيانات ومستوى الاستقلالية؛ والنتيجة إما التنفيذ، أو التصعيد إلى إنسان، أو الرفض؛ وكل مسار يُكتب في سجل تدقيق غير قابل للتعديل.">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+        <marker id="arA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+        </marker>
+      </defs>
+      <!-- Model (mirrored for RTL: flow runs right to left) -->
+      <rect x="620" y="92" width="132" height="56" rx="10" fill="var(--flow-soft)" stroke="var(--flow)" stroke-width="1.5"/>
+      <text x="686" y="115" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor">LLM</text>
+      <text x="686" y="134" text-anchor="middle" font-size="10.5" fill="currentColor">يقترح إجراءً</text>
+      <!-- arrow to policy -->
+      <line x1="620" y1="120" x2="548" y2="120" stroke="currentColor" stroke-width="1.6" marker-end="url(#ar)"/>
+      <text x="584" y="112" text-anchor="middle" font-size="9.5" fill="var(--muted)">يطلب</text>
+      <!-- Policy engine (the load-bearing box) -->
+      <rect x="370" y="72" width="176" height="96" rx="12" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+      <text x="458" y="96" text-anchor="middle" font-size="13" font-weight="800" fill="var(--accent)">محرّك السياسات</text>
+      <text x="458" y="116" text-anchor="middle" font-size="10" fill="currentColor">قائمة السماح ·</text>
+      <text x="458" y="131" text-anchor="middle" font-size="10" fill="currentColor">سقف البيانات ·</text>
+      <text x="458" y="146" text-anchor="middle" font-size="10" fill="currentColor">مستوى الاستقلالية</text>
+      <text x="458" y="60" text-anchor="middle" font-size="9.5" font-style="italic" fill="var(--accent)">كود، لا الـprompt</text>
+      <!-- three outcomes -->
+      <line x1="370" y1="96"  x2="290" y2="52"  stroke="var(--accent)" stroke-width="1.6" marker-end="url(#arA)"/>
+      <line x1="370" y1="120" x2="290" y2="120" stroke="var(--accent)" stroke-width="1.6" marker-end="url(#arA)"/>
+      <line x1="370" y1="144" x2="290" y2="188" stroke="var(--accent)" stroke-width="1.6" marker-end="url(#arA)"/>
+      <rect x="138" y="30" width="150" height="44" rx="9" fill="var(--panel)" stroke="var(--flow)" stroke-width="1.5"/>
+      <text x="213" y="49" text-anchor="middle" font-size="11.5" font-weight="700" fill="currentColor">تنفيذ الأداة</text>
+      <text x="213" y="65" text-anchor="middle" font-size="9.5" fill="var(--muted)">ضمن السقف</text>
+      <rect x="138" y="98" width="150" height="44" rx="9" fill="var(--panel)" stroke="currentColor" stroke-width="1.3"/>
+      <text x="213" y="117" text-anchor="middle" font-size="11.5" font-weight="700" fill="currentColor">تصعيد ← إنسان</text>
+      <text x="213" y="133" text-anchor="middle" font-size="9.5" fill="var(--muted)">MUTATE + حسّاس</text>
+      <rect x="138" y="166" width="150" height="44" rx="9" fill="var(--panel)" stroke="currentColor" stroke-width="1.3"/>
+      <text x="213" y="185" text-anchor="middle" font-size="11.5" font-weight="700" fill="currentColor">رفض</text>
+      <text x="213" y="201" text-anchor="middle" font-size="9.5" fill="var(--muted)">خارج الحدود</text>
+      <!-- audit -->
+      <line x1="138" y1="52"  x2="66" y2="112" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar)"/>
+      <line x1="138" y1="120" x2="66" y2="120" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar)"/>
+      <line x1="138" y1="188" x2="66" y2="128" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar)"/>
+      <rect x="8" y="96" width="56" height="48" rx="9" fill="var(--flow-soft)" stroke="var(--flow)" stroke-width="1.5"/>
+      <text x="36" y="116" text-anchor="middle" font-size="10.5" font-weight="700" fill="currentColor">سجل</text>
+      <text x="36" y="132" text-anchor="middle" font-size="10.5" font-weight="700" fill="currentColor">التدقيق</text>
+    </svg>
+    <figcaption>حوكمة حتمية حول استدلال غير حتمي: النموذج يقرر <em>ماذا يطلب</em>؛ والكود يقرر <em>هل هو مسموح</em>؛ وكل مسار يخضع للتدقيق. لا يمكنك اعتماد prompt — لكن يمكنك اعتماد هذا المحرّك.</figcaption>
+  </figure>
+
+  <div class="section-label"><h2>الركائز الثماني</h2></div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="head"><span class="num">1</span><h3>البناء</h3>
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="16" height="4" rx="1"/><rect x="4" y="10" width="16" height="4" rx="1"/><rect x="4" y="16" width="16" height="4" rx="1"/></svg></div>
+      <p class="tagline">وكلاء صغار متخصصون خلف موجّه <span class="en">(router)</span>؛ وإطار تشغيل حتمي <span class="en">(harness)</span> يحيط بالنموذج.</p>
+      <div class="chips"><span class="chip">مهمة واحدة لكل وكيل</span><span class="chip">مسارات عمل على شكل رسم بياني <span class="en">(graph)</span></span><span class="chip">عقود محددة الأنواع <span class="en">(typed)</span></span><span class="chip">مستقل عن المزوّد</span></div>
+      <div class="map">← <bdi>policy YAML · router · graph-engine</bdi></div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="num">2</span><h3>التأمين</h3>
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
+      <p class="tagline">أقل صلاحية <span class="en">(least privilege)</span> لا يمكن تجاوزها بالإقناع؛ احتوِ حقن الأوامر <span class="en">(injection)</span>، ولا تكتفِ بتصفيته.</p>
+      <div class="chips"><span class="chip">هوية لكل وكيل</span><span class="chip">قوائم السماح للأدوات <span class="en">(tool allowlists)</span></span><span class="chip">نطاق ضرر محدود <span class="en">(blast radius)</span></span><span class="chip">حماية من الوكيل المُضلَّل <span class="en">(confused deputy)</span></span></div>
+      <div class="map">← <bdi>identity.ts · tool-registry · guardrails</bdi></div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="num">3</span><h3>التواصل</h3>
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="transform:scaleX(-1)"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="12" r="2.5"/><line x1="8.5" y1="12" x2="15.5" y2="12"/><path d="M13 9.5l2.5 2.5-2.5 2.5"/></svg></div>
+      <p class="tagline">أظرف رسائل محددة الأنواع <span class="en">(typed envelopes)</span> بين الوكلاء؛ وسلّم الاستقلالية <span class="en">(autonomy ladder)</span> بين الوكيل والإنسان.</p>
+      <div class="chips"><span class="chip">معرّفات الترابط <span class="en">(correlation IDs)</span></span><span class="chip">الصلاحية تنتقل مع الرسالة</span><span class="chip">MCP / A2A عند الحواف</span><span class="chip">مبدأ المُنشئ والمُدقّق <span class="en">(maker-checker)</span></span></div>
+      <div class="map">← <bdi>message-envelope · escalation · MCP</bdi></div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="num">4</span><h3>الحوكمة</h3>
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 4v16M6 8h12"/><path d="M6 8l-2.5 5a3 3 0 005 0z"/><path d="M18 8l-2.5 5a3 3 0 005 0z"/></svg></div>
+      <p class="tagline">لكل وكيل إنسان مسمّى يملكه؛ والسياسة ككود <span class="en">(policy-as-code)</span> هي السجل الذي يُعرض على الجهة الرقابية.</p>
+      <div class="chips"><span class="chip">الفريق المالك <span class="en">(owner team)</span></span><span class="chip">لجنة حوكمة الذكاء الاصطناعي</span><span class="chip">QCB · PDPPL · الحوكمة الشرعية</span><span class="chip">EU AI Act كمرجع مقارنة</span></div>
+      <div class="map">← <bdi>policies/ + git history · templates/</bdi></div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="num">5</span><h3>الحواجز الوقائية</h3>
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg></div>
+      <p class="tagline">إنفاذ <span class="en">(enforcement)</span> على كل مُدخل ومُخرج واستدعاء أداة <span class="en">(tool-call)</span> وحدّ سلوكي — بما في ذلك العربية.</p>
+      <div class="chips"><span class="chip">حظر الحقن</span><span class="chip">حماية PII بمستوى DLP</span><span class="chip">سقوف الأدوار / التكلفة</span><span class="chip">BLOCK · WARN · INFO</span></div>
+      <div class="map">← <bdi>guardrails.ts · normalizeForDetection</bdi></div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="num">6</span><h3>التقييم</h3>
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8l2 2 4-4M8 15l2 2 4-4"/></svg></div>
+      <p class="tagline">قِس السلوك، لا تشغيلًا واحدًا محظوظًا. تعديل الـprompt تغيير في الكود؛ والتقييمات <span class="en">(evals)</span> هي بوابته.</p>
+      <div class="chips"><span class="chip">مجموعات بيانات ذهبية <span class="en">(golden datasets)</span></span><span class="chip">حزمة اختبارات عدائية <span class="en">(adversarial)</span></span><span class="chip">بوابات CI</span><span class="chip">مؤشر معدّل التجاوز <span class="en">(override-rate KPI)</span></span></div>
+      <div class="map">← <bdi>evals/ · npm run eval</bdi></div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="num">7</span><h3>الرصد</h3>
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="2.5"/></svg></div>
+      <p class="tagline">نظامان: أثر تدقيق <span class="en">(audit trail)</span> غير قابل للتعديل، وقياس تشغيلي عن بُعد <span class="en">(telemetry)</span>. أعِد بناء أي قرار.</p>
+      <div class="chips"><span class="chip">تدقيق بالإلحاق فقط <span class="en">(append-only)</span></span><span class="chip">الإصدارات السارية</span><span class="chip">تتبّعات OTel</span><span class="chip">تنبيهات سلوكية</span></div>
+      <div class="map">← <bdi>audit-logger · observability · runbooks/</bdi></div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="num">8</span><h3>الإصدارات</h3>
+        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="12" r="2.5"/><path d="M6 8.5v7M8 6h5a3 3 0 013 3v.5M8 18h5a3 3 0 003-3v-.5"/></svg></div>
+      <p class="tagline">الوكيل هو خمسة مكوّنات ذات إصدارات <span class="en">(versioned artifacts)</span>. لا "latest" أبدًا. التراجع <span class="en">(rollback)</span> ومفتاح الإيقاف <span class="en">(kill switch)</span> يُتدرَّب عليهما.</p>
+      <div class="chips"><span class="chip">السياسة · الـprompt · الأدوات</span><span class="chip">نموذج مثبّت الإصدار <span class="en">(pinned)</span></span><span class="chip">الظل ← الإنتاج <span class="en">(shadow → prod)</span></span><span class="chip">مفتاح إيقاف بثلاثة مستويات</span></div>
+      <div class="map">← <bdi>semver policies · CI · admin route</bdi></div>
+    </div>
+
+  </div>
+
+  <div class="section-label"><h2>الاستقلالية تُكتسب ولا تُمنح</h2></div>
+  <figure class="ladder">
+    <svg viewBox="0 0 760 142" role="img" aria-label="سلّم الاستقلالية: L0 الظل، ثم L1 الإشعار، ثم L2 الموافقة، ثم L3 الاستقلال — كل ترقية مشروطة بحزمة أدلة، والاستقلالية تُكتسب لكل فئة مهام، لا لكل وكيل.">
+      <defs>
+        <marker id="lad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--flow)"/></marker>
+      </defs>
+      <g>
+        <rect x="602" y="82" width="150" height="44" rx="9" fill="var(--panel)" stroke="currentColor" stroke-width="1.3"/>
+        <text x="677" y="100" text-anchor="middle" font-size="12" font-weight="700" fill="currentColor">L0 · الظل</text>
+        <text x="677" y="117" text-anchor="middle" font-size="9.5" fill="var(--muted)">يعمل، بلا أثر</text>
+
+        <rect x="406" y="82" width="150" height="44" rx="9" fill="var(--panel)" stroke="currentColor" stroke-width="1.3"/>
+        <text x="481" y="100" text-anchor="middle" font-size="12" font-weight="700" fill="currentColor">L1 · الإشعار</text>
+        <text x="481" y="117" text-anchor="middle" font-size="9.5" fill="var(--muted)">ينفّذ ثم يُبلغك</text>
+
+        <rect x="210" y="82" width="150" height="44" rx="9" fill="var(--panel)" stroke="currentColor" stroke-width="1.3"/>
+        <text x="285" y="100" text-anchor="middle" font-size="12" font-weight="700" fill="currentColor">L2 · الموافقة</text>
+        <text x="285" y="117" text-anchor="middle" font-size="9.5" fill="var(--muted)">إنسان يعتمد</text>
+
+        <rect x="8" y="82" width="156" height="44" rx="9" fill="var(--flow-soft)" stroke="var(--flow)" stroke-width="1.6"/>
+        <text x="86" y="100" text-anchor="middle" font-size="12" font-weight="700" fill="currentColor">L3 · مستقل</text>
+        <text x="86" y="117" text-anchor="middle" font-size="9.5" fill="var(--muted)">مراجعة بالعيّنات</text>
+      </g>
+      <line x1="602" y1="104" x2="560" y2="104" stroke="var(--flow)" stroke-width="1.6" marker-end="url(#lad)"/>
+      <line x1="406" y1="104" x2="364" y2="104" stroke="var(--flow)" stroke-width="1.6" marker-end="url(#lad)"/>
+      <line x1="210" y1="104" x2="168" y2="104" stroke="var(--flow)" stroke-width="1.6" marker-end="url(#lad)"/>
+      <text x="581" y="95" text-anchor="middle" font-size="8.5" fill="var(--flow)">أدلة</text>
+      <text x="385" y="95" text-anchor="middle" font-size="8.5" fill="var(--flow)">أدلة</text>
+      <text x="189" y="95" text-anchor="middle" font-size="8.5" fill="var(--flow)">أدلة</text>
+      <text x="750" y="26" text-anchor="start" direction="rtl" font-size="13" font-weight="700" fill="currentColor">من موظف جديد ← إلى صلاحية مفوَّضة</text>
+      <text x="750" y="46" text-anchor="start" direction="rtl" font-size="10.5" fill="var(--muted)">كل ترقية تتطلب حزمة أدلة (evidence pack): نتائج التقييمات · سجل مؤشرات الأداء (KPI) · اختبار الفريق الأحمر (red-team) · التراجع.</text>
+      <text x="750" y="62" text-anchor="start" direction="rtl" font-size="10.5" fill="var(--muted)">تُكتسب لكل فئة مهام، لا لكل وكيل.</text>
+    </svg>
+  </figure>
+
+  <div class="section-label"><h2>المنظومة التنظيمية لعام 2026 — اختر خيارًا واحدًا لكل طبقة</h2></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>الطبقة</th><th>الخيارات (منتصف 2026)</th><th>ما الذي يحسم الاختيار في بنك</th></tr></thead>
+      <tbody>
+        <tr><td class="layer">التنسيق <span class="en">(Orchestration)</span></td><td>Claude Agent SDK · LangGraph 1.0 · OpenAI Agents SDK · Microsoft Agent Framework</td><td><span class="reg">دعم الرسم البياني ونقاط الحفظ <span class="en">(checkpoint)</span> والمقاطعة <span class="en">(interrupt)</span></span> لمسارات قابلة للتدقيق والاستئناف ومحكومة ببوابة بشرية</td></tr>
+        <tr><td class="layer">بروتوكولات الوكلاء</td><td>MCP (الأدوات) · A2A v1.0 (الوكلاء) · AP2 (المدفوعات)</td><td>MCP مستقر — اعتمده. A2A فقط عبر حدود المؤسسات؛ <span class="reg">الصلاحية تبقى داخل ظرف رسالتك</span></td></tr>
+        <tr><td class="layer">النموذج والاستضافة</td><td>Claude / GPT / Gemini · محلي <span class="en">(Ollama)</span> · Azure Qatar</td><td><span class="reg">بيانات CONFIDENTIAL وما فوقها تبقى داخل المنطقة؛</span> معرّفات مثبّتة، لا "latest" أبدًا</td></tr>
+        <tr><td class="layer">التقييم <span class="en">(Evaluation)</span></td><td>promptfoo · Braintrust · LangSmith · منظومة CI لديك</td><td>أداة CLI تعمل بوابةً في CI مع إدارة إصدارات مجموعات البيانات؛ والفريق المالك يحدد الإجابات الصحيحة</td></tr>
+        <tr><td class="layer">قابلية الرصد <span class="en">(Observability)</span></td><td>OTel + Jaeger/Grafana · Datadog LLM · Azure Monitor</td><td>يدعم اصطلاحات OTel GenAI؛ <span class="reg">أثر التدقيق منفصل</span> عن القياس عن بُعد</td></tr>
+        <tr><td class="layer">الحواجز الوقائية <span class="en">(Guardrails)</span> / DLP</td><td>Presidio · DLP السحابي · مكتبات الحواجز الوقائية</td><td><span class="reg">تغطية الخط العربي وQID وIBAN</span> — الاقتصار على الإنجليزية طمأنة زائفة</td></tr>
+        <tr><td class="layer">الاسترجاع <span class="en">(Retrieval)</span></td><td>pgvector · Azure AI Search · بحث هجين + إعادة ترتيب <span class="en">(rerank)</span></td><td>تصفية الصلاحيات وقت الاستعلام؛ والاستشهاد بالمصادر إلزامي</td></tr>
+        <tr><td class="layer">الحوكمة <span class="en">(Governance)</span></td><td><b>ابنِها بنفسك</b> — السياسات، واللجنة، وحزم الأدلة</td><td><span class="reg">الطبقة الوحيدة التي لا تُسندها لطرف خارجي أبدًا</span> — تصمد أمام كل تغيير في المزوّدين</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="foot">
+    <span>التفاصيل وراء كل ركيزة: <b>PRODUCTION-PLAYBOOK.md</b> · تعلّمها: <b>LEARNING-PATH.md</b> (من L0 إلى L5) · حدّد مستواك: <b>assessment.ar.html</b></span>
+    <span>QDB Agent Framework · الإصدار التمهيدي v1 · 2026</span>
+  </div>
+
+</div>
+</body>
+</html>
