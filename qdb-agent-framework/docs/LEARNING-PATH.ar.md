@@ -23,14 +23,14 @@
 
 ```mermaid
 flowchart RL
-    L0["L0 المُلِمّ — الجميع"] --> L1["L1 الباني"]
-    L1 --> L2["L2 مهندس الوكلاء"]
-    L2 --> L3["L3 مهندس الإنتاج"]
-    L2 --> L4["L4 أخصائي الذكاء الاصطناعي المنظَّم"]
-    L3 --> L5["L5 البطل / قائد البرنامج"]
+    L0["L0 المُلِمّ — الجميع<br/>(L0 Literate — everyone)"] --> L1["L1 الباني<br/>(L1 Builder)"]
+    L1 --> L2["L2 مهندس الوكلاء<br/>(L2 Agent Engineer)"]
+    L2 --> L3["L3 مهندس الإنتاج<br/>(L3 Production Engineer)"]
+    L2 --> L4["L4 أخصائي الذكاء الاصطناعي المنظَّم<br/>(L4 Regulated-AI Specialist)"]
+    L3 --> L5["L5 البطل / قائد البرنامج<br/>(L5 Hero / Program Lead)"]
     L4 --> L5
-    L0 -.->|"نسخة تنفيذية، نصف يوم"| EX["مسار إحاطة القيادة"]
-    L0 -.->|"مسار استطلاعي"| GOV["المخاطر / الامتثال → وحدات الحوكمة في L4"]
+    L0 -.->|"نسخة تنفيذية، نصف يوم (exec cut, half-day)"| EX["مسار إحاطة القيادة<br/>(Leadership briefing track)"]
+    L0 -.->|"مسار استطلاعي (survey track)"| GOV["المخاطر / الامتثال → وحدات الحوكمة في L4<br/>(Risk / compliance → L4 governance modules)"]
 ```
 
 ## 2. مسارات الأدوار (role tracks)
@@ -110,16 +110,16 @@ flowchart RL
 
 ```mermaid
 flowchart RL
-    G["الهدف + السياق"] --> M["LLM — يستدلّ ويطلب إجراءات"]
-    M -->|"يطلب استدعاء أداة"| P["فحص السياسة — قائمة السماح، السقف، الاستقلالية"]
-    subgraph HARNESS["منظومة حاكمة حتمية — شيفرتك تحمل المفاتيح"]
-        P -->|مسموح| E["تنفيذ الأداة"]
-        P -->|مرفوض| D["رفض / تصعيد إلى إنسان"]
-        E --> A["سجل التدقيق"]
+    G["الهدف + السياق<br/>(Goal + context)"] --> M["LLM — يستدلّ ويطلب إجراءات<br/>(LLM — reasons, requests actions)"]
+    M -->|"يطلب استدعاء أداة (requests tool call)"| P["فحص السياسة — قائمة السماح، السقف، الاستقلالية<br/>(Policy check — allowlist, ceiling, autonomy)"]
+    subgraph HARNESS["منظومة حاكمة حتمية — شيفرتك تحمل المفاتيح (Deterministic harness — your code holds the keys)"]
+        P -->|"مسموح (allowed)"| E["تنفيذ الأداة<br/>(Execute tool)"]
+        P -->|"مرفوض (denied)"| D["رفض / تصعيد إلى إنسان<br/>(Refuse / escalate to human)"]
+        E --> A["سجل التدقيق<br/>(Audit log)"]
         D --> A
     end
-    A -->|"نتيجة الأداة"| M
-    M -->|"الإجابة النهائية"| U["المستخدم"]
+    A -->|"نتيجة الأداة (tool result)"| M
+    M -->|"الإجابة النهائية (final answer)"| U["المستخدم<br/>(User)"]
 ```
 
 **المصادر (Resources):** مدوّنة Anthropic الهندسية "Building effective agents" (أفضل قراءة قصيرة منفردة في هذا المجال)؛ دليل التشغيل §1، §4.2.
@@ -301,11 +301,11 @@ flowchart RL
 
 ```mermaid
 flowchart RL
-    A["تسلسل الـprompts — خطوات ثابتة"] --> B["التوجيه — صنّف ثم وزّع"]
-    B --> C["التوازي — تقسيم / تصويت"]
-    C --> D["المنسّق والعمّال — تفكيك ديناميكي"]
-    D --> E["المقيِّم والمحسِّن — توليد، نقد، إعادة"]
-    E --> F["حلقة الوكيل الكاملة — تحكم يقوده النموذج"]
+    A["تسلسل الـprompts — خطوات ثابتة<br/>(Prompt chaining — fixed steps)"] --> B["التوجيه — صنّف ثم وزّع<br/>(Routing — classify, then dispatch)"]
+    B --> C["التوازي — تقسيم / تصويت<br/>(Parallelization — sectioning / voting)"]
+    C --> D["المنسّق والعمّال — تفكيك ديناميكي<br/>(Orchestrator–workers — dynamic decomposition)"]
+    D --> E["المقيِّم والمحسِّن — توليد، نقد، إعادة<br/>(Evaluator–optimizer — generate, critique, retry)"]
+    E --> F["حلقة الوكيل الكاملة — تحكم يقوده النموذج<br/>(Full agent loop — model-directed control flow)"]
     style A fill:#e8f0e8,stroke:#4a7a4a
     style F fill:#f0e0e0,stroke:#8a4a4a
 ```
@@ -332,13 +332,13 @@ flowchart RL
 
 ```mermaid
 flowchart RL
-    S(["البداية"]) --> N1["classify-incident"]
+    S(["البداية<br/>(Start)"]) --> N1["classify-incident"]
     N1 -->|"P1 / P2"| N2["fetch-runbook"]
-    N1 -->|"P3 وما دونها"| CP[("نقطة حفظ — الحالة محفوظة")]
+    N1 -->|"P3 وما دونها (P3 and below)"| CP[("نقطة حفظ — الحالة محفوظة<br/>(checkpoint — state persisted)")]
     N2 --> CP
     CP --> N3["draft-ticket"]
-    N3 --> E(["النهاية"])
-    CP -.->|"انهيار / مقاطعة ← استئناف من هنا"| CP
+    N3 --> E(["النهاية<br/>(End)"])
+    CP -.->|"انهيار / مقاطعة ← استئناف من هنا (crash / interrupt → resume from here)"| CP
 ```
 
 ### الوحدة (Module) 2.3 — إدارة الحالة (state management) والذاكرة (memory) والسياق (≈4 ساعات)
@@ -372,14 +372,14 @@ flowchart RL
 
 ```mermaid
 flowchart TB
-    subgraph QDB["داخل QDB — غلاف الحوكمة على كل قفزة"]
-        R["وكيل الموجّه"] <-->|"غلاف عبر ناقل الرسائل"| IT["وكيل عمليات تقنية المعلومات"]
-        R <-->|"غلاف"| PMO["وكيل PMO"]
+    subgraph QDB["داخل QDB — غلاف الحوكمة على كل قفزة (Inside QDB — governance envelope on every hop)"]
+        R["وكيل الموجّه<br/>(Router agent)"] <-->|"غلاف عبر ناقل الرسائل (envelope over message bus)"| IT["وكيل عمليات تقنية المعلومات<br/>(IT ops agent)"]
+        R <-->|"غلاف (envelope)"| PMO["وكيل PMO<br/>(PMO agent)"]
     end
-    IT -->|"MCP — عمودي: وكيل إلى أداة"| T1[("Azure Monitor")]
+    IT -->|"MCP — عمودي: وكيل إلى أداة (MCP — vertical: agent to tool)"| T1[("Azure Monitor")]
     PMO -->|"MCP"| T2[("Power BI")]
     PMO -->|"MCP"| T3[("ECM")]
-    R <-->|"A2A v1.0 — أفقي: وكيل إلى وكيل، Agent Cards موقّعة"| EXT["وكيل خارجي / شريك"]
+    R <-->|"A2A v1.0 — أفقي: وكيل إلى وكيل، Agent Cards موقّعة (A2A v1.0 — horizontal: agent to agent, signed Agent Cards)"| EXT["وكيل خارجي / شريك<br/>(External / partner agent)"]
 ```
 
 **المصادر (Resources):** مواصفة (spec) modelcontextprotocol.io + دليل البدء السريع (quickstart) للخادم؛ واختبارات الغلاف (envelope) في هذا المستودع (`tests/unit/message-envelope.test.ts`).
@@ -403,20 +403,20 @@ flowchart TB
 
 ```mermaid
 sequenceDiagram
-    participant AU as سجل التدقيق
-    participant M as المُوافِق المُسمّى
-    participant Q as طابور الموافقات
-    participant ES as محرّك التصعيد
-    participant AG as الوكيل
+    participant AU as سجل التدقيق (Audit log)
+    participant M as المُوافِق المُسمّى (Named approver)
+    participant Q as طابور الموافقات (Approval queue)
+    participant ES as محرّك التصعيد (Escalation engine)
+    participant AG as الوكيل (Agent)
 
-    AG->>ES: إجراء MUTATE مقترح
-    ES->>ES: فحص السياسة + التصنيف + الاستقلالية
-    ES->>Q: طلب موافقة — الغلاف، الاستدلال، ما سيحدث عند الموافقة
-    Q->>M: إشعار الدور المُسمّى
-    M-->>Q: موافقة أو رفض، مع المبرّر
-    Q->>AU: تسجيل القرار — المُوافِق، الطابع الزمني، المبرّر
-    Q-->>AG: نتيجة مُنمَّطة
-    AG->>AU: نتيجة التنفيذ، أو توقف آمن عند الرفض
+    AG->>ES: إجراء MUTATE مقترح (proposed MUTATE action)
+    ES->>ES: فحص السياسة + التصنيف + الاستقلالية (policy + classification + autonomy check)
+    ES->>Q: طلب موافقة — الغلاف، الاستدلال، ما سيحدث عند الموافقة (approval request — envelope, reasoning, what-happens-if-approved)
+    Q->>M: إشعار الدور المُسمّى (notify named role)
+    M-->>Q: موافقة أو رفض، مع المبرّر (approve or reject, with rationale)
+    Q->>AU: تسجيل القرار — المُوافِق، الطابع الزمني، المبرّر (decision recorded — approver, timestamp, rationale)
+    Q-->>AG: نتيجة مُنمَّطة (typed outcome)
+    AG->>AU: نتيجة التنفيذ، أو توقف آمن عند الرفض (execution result, or safe stop on rejection)
 ```
 
 **المختبر (lab):** ابنِ دورة الموافقة (approval round-trip) الكاملة لسيناريو المشتريات (أدناه): يقترح الوكيل (agent) تعديل أمر شراء (PO) ← يُنشأ طلب موافقة (approval request) بالسياق (context) الكامل ← حاكِ مساري الموافقة (approval) والرفض ← تحقّق من كلتا النتيجتين في سجل التدقيق (audit log) وفي سلوك الوكيل اللاحق.
@@ -496,10 +496,10 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    T1["1 — تحققات حتمية: الأداة الصحيحة استُدعيت، المخطط يُحلَّل، صعّد عند اللزوم، رفض ما خارج النطاق. رخيصة، موضوعية، لا تكذب. غطِّ هنا السلوك الحرج للامتثال."]
-    T2["2 — مستندة إلى مرجع: الدقة / F1 مقابل الحقيقة المُعلَّمة"]
-    T3["3 — LLM-as-judge: الاستناد، النبرة، الاكتمال. مفيد؛ ينجرف؛ عايِره مقابل التقييم البشري كل ربع سنة؛ ليس البوابة التنظيمية الوحيدة أبداً"]
-    T4["4 — تقييم بشري: تقدير عيّنات؛ ويصلح دليلاً لترقية الاستقلالية"]
+    T1["1 — تحققات حتمية: الأداة الصحيحة استُدعيت، المخطط يُحلَّل، صعّد عند اللزوم، رفض ما خارج النطاق. رخيصة، موضوعية، لا تكذب. غطِّ هنا السلوك الحرج للامتثال.<br/>(1 — Deterministic assertions: right tool called, schema parses, escalated when required, refused out-of-scope. Cheap, objective, never lie. Cover compliance-critical behavior here.)"]
+    T2["2 — مستندة إلى مرجع: الدقة / F1 مقابل الحقيقة المُعلَّمة<br/>(2 — Reference-based: accuracy / F1 against labeled truth)"]
+    T3["3 — LLM-as-judge: الاستناد، النبرة، الاكتمال. مفيد؛ ينجرف؛ عايِره مقابل التقييم البشري كل ربع سنة؛ ليس البوابة التنظيمية الوحيدة أبداً<br/>(3 — LLM-as-judge: groundedness, tone, completeness. Useful#59; drifts#59; calibrate vs human ratings quarterly#59; never the sole regulated gate)"]
+    T4["4 — تقييم بشري: تقدير عيّنات؛ ويصلح دليلاً لترقية الاستقلالية<br/>(4 — Human evaluation: sampled grading#59; doubles as autonomy-promotion evidence)"]
     T1 --> T2 --> T3 --> T4
 ```
 
@@ -532,10 +532,10 @@ flowchart TB
 
 ```mermaid
 flowchart RL
-    DEV["dev"] -->|"اختبارات الوحدة + الحوكمة"| STG["staging"]
-    STG -->|"مجموعتا التقييم الذهبية + العدائية — فحوص إلزامية"| SHD["shadow — L0 على حركة حية، بلا آثار"]
-    SHD -->|"مقارنة KPI + اعتماد"| PRD["prod"]
-    PRD -.->|"التراجع = إصدار السياسة السابق + تثبيت النموذج، دقائق، بلا نشر شيفرة"| SHD
+    DEV["dev"] -->|"اختبارات الوحدة + الحوكمة (unit + governance tests)"| STG["staging"]
+    STG -->|"مجموعتا التقييم الذهبية + العدائية — فحوص إلزامية (golden + adversarial eval suites — required checks)"| SHD["shadow — L0 على حركة حية، بلا آثار<br/>(shadow — L0 on live traffic, zero effects)"]
+    SHD -->|"مقارنة KPI + اعتماد (KPI comparison + sign-off)"| PRD["prod"]
+    PRD -.->|"التراجع = إصدار السياسة السابق + تثبيت النموذج، دقائق، بلا نشر شيفرة (rollback = previous policy version + model pin, minutes, no code deploy)"| SHD
 ```
 
 **المختبر (lab):** ابنِ هيكل خط الترقية (promotion pipeline): سير عمل (workflow) في GitHub Actions يشغّل، عند أي تغيير في `policies/**` أو `src/**` أو `evals/**`، اختبارات الوحدة (unit tests) + اختبارات الحوكمة (governance) + مجموعتي التقييم (evaluation)، وعند الدمج في main يُنتج صورة حاوية (container image) ذات إصدار (يوجد Dockerfile) موسومة بإصدارات السياسات (policies) المضمّنة. وثّق إجراء التراجع (rollback procedure) ونفّذه مرة واحدة على حزمة docker-compose.
@@ -613,14 +613,14 @@ flowchart RL
 
 ```mermaid
 flowchart RL
-    I["تعليمة محقونة — مخفية في مستند مسترجَع"] --> H["اختُطف الوكيل — لم تكتشفها المرشّحات"]
-    H --> C1{"هل الأداة في القائمة المسموح بها للوكيل؟"}
-    C1 -- لا --> B1["حُظر + سُجّل للتدقيق"]
-    C1 -- نعم --> C2{"هل البيانات ضمن سقف التصنيف؟"}
-    C2 -- لا --> B2["حُظر + سُجّل للتدقيق"]
-    C2 -- نعم --> C3{"MUTATE على بيانات حساسة؟"}
-    C3 -- نعم --> B3["موافقة بشرية تعترض — الطلب الشاذ ظاهر"]
-    C3 -- لا --> BR["أسوأ حالة: READ ضمن النطاق — نطاق ضرر محدود ومُدقَّق بالكامل"]
+    I["تعليمة محقونة — مخفية في مستند مسترجَع<br/>(Injected instruction — hidden in a retrieved document)"] --> H["اختُطف الوكيل — لم تكتشفها المرشّحات<br/>(Agent hijacked — filters missed it)"]
+    H --> C1{"هل الأداة في القائمة المسموح بها للوكيل؟<br/>(Tool on the agent's allowlist?)"}
+    C1 -- "لا (no)" --> B1["حُظر + سُجّل للتدقيق<br/>(Blocked + audited)"]
+    C1 -- "نعم (yes)" --> C2{"هل البيانات ضمن سقف التصنيف؟<br/>(Data within classification ceiling?)"}
+    C2 -- "لا (no)" --> B2["حُظر + سُجّل للتدقيق<br/>(Blocked + audited)"]
+    C2 -- "نعم (yes)" --> C3{"MUTATE على بيانات حساسة؟<br/>(MUTATE on sensitive data?)"}
+    C3 -- "نعم (yes)" --> B3["موافقة بشرية تعترض — الطلب الشاذ ظاهر<br/>(Human approval intercepts — anomalous request visible)"]
+    C3 -- "لا (no)" --> BR["أسوأ حالة: READ ضمن النطاق — نطاق ضرر محدود ومُدقَّق بالكامل<br/>(Worst case: an in-scope READ — bounded blast radius, fully audited)"]
     style B1 fill:#e8f0e8,stroke:#4a7a4a
     style B2 fill:#e8f0e8,stroke:#4a7a4a
     style B3 fill:#e8f0e8,stroke:#4a7a4a
@@ -811,14 +811,14 @@ flowchart RL
 
 ```mermaid
 flowchart RL
-    S1["1 دراسة الجدوى + خط الأساس"] --> S2["2 سجل القرار المعماري"]
-    S2 --> S3["3 البناء + مجموعة التقييمات الكاملة في CI"]
-    S3 --> S4["4 نموذج التهديدات + الفريق الأحمر"]
-    S4 --> S5["5 حزمة الحوكمة + موافقة اللجنة"]
-    S5 --> S6["6 ظلّي L0، 4+ أسابيع، لوحات المتابعة تعمل"]
-    S6 --> S7{"7 قرار الترقية"}
-    S7 -->|"مضيّ"| GO["L1/L2 في الإنتاج"]
-    S7 -->|"عدم مضيّ موثّق"| NG["نتيجة ختامية صالحة بالقدر نفسه"]
+    S1["1 دراسة الجدوى + خط الأساس<br/>(1 Business case + baseline)"] --> S2["2 سجل القرار المعماري<br/>(2 Architecture decision record)"]
+    S2 --> S3["3 البناء + مجموعة التقييمات الكاملة في CI<br/>(3 Build + full eval suite in CI)"]
+    S3 --> S4["4 نموذج التهديدات + الفريق الأحمر<br/>(4 Threat model + red team)"]
+    S4 --> S5["5 حزمة الحوكمة + موافقة اللجنة<br/>(5 Governance pack + committee approval)"]
+    S5 --> S6["6 ظلّي L0، 4+ أسابيع، لوحات المتابعة تعمل<br/>(6 Shadow L0, 4+ weeks, dashboards live)"]
+    S6 --> S7{"7 قرار الترقية<br/>(7 Promotion decision)"}
+    S7 -->|"مضيّ (go)"| GO["L1/L2 في الإنتاج<br/>(L1/L2 in production)"]
+    S7 -->|"عدم مضيّ موثّق (documented no-go)"| NG["نتيجة ختامية صالحة بالقدر نفسه<br/>(Equally valid capstone outcome)"]
 ```
 
 **تصبح "بطلًا (hero)" عندما تكون قد أوصلت وكيلًا (agent) واحدًا عبر الخطوات السبع كلها، وعلّمت دفعة (cohort) واحدة على الأقل من بعدك.** يتوسع البرنامج (program) عبر أشخاص خاضوا التجربة، لا عبر الوثائق — بما فيها هذه الوثيقة.

@@ -44,15 +44,15 @@
 
 ```mermaid
 flowchart TB
-    CH["القنوات: واجهة المحادثة، Teams، البريد، API — src/api/"]
-    GI["حواجز المدخلات — core/guardrails"]
-    RT["وكيل الموجّه — تصنيف النيّة"]
-    SA["وكلاء متخصصون — كلٌّ = سياسة + prompt نظامي + قائمة أدوات مسموحة — src/agents/"]
-    GOV["الحوكمة: محرّك السياسات · التصعيد · مصنّف البيانات — src/governance/"]
-    TR["سجلّ الأدوات + البيان — core/tool-*"]
-    TOOLS["الأدوات: قراءة البيانات READ · إجراءات MUTATE · الامتثال — src/tools/"]
-    GO["حواجز المخرجات ← سجل التدقيق ← قابلية الرصد"]
-    LLM["موجّه LLM: Claude / GPT / محلي — core/llm-router"]
+    CH["القنوات: واجهة المحادثة، Teams، البريد، API — src/api/<br/>(Channels: chat UI, Teams, email, API — src/api/)"]
+    GI["حواجز المدخلات — core/guardrails<br/>(Input guardrails — core/guardrails)"]
+    RT["وكيل الموجّه — تصنيف النيّة<br/>(Router agent — intent classification)"]
+    SA["وكلاء متخصصون — كلٌّ = سياسة + prompt نظامي + قائمة أدوات مسموحة — src/agents/<br/>(Specialist agents — each = policy + system prompt + tool allowlist — src/agents/)"]
+    GOV["الحوكمة: محرّك السياسات · التصعيد · مصنّف البيانات — src/governance/<br/>(Governance: policy engine · escalation · data classifier — src/governance/)"]
+    TR["سجلّ الأدوات + البيان — core/tool-*<br/>(Tool registry + manifest — core/tool-*)"]
+    TOOLS["الأدوات: قراءة البيانات READ · إجراءات MUTATE · الامتثال — src/tools/<br/>(Tools: data READ · actions MUTATE · compliance — src/tools/)"]
+    GO["حواجز المخرجات ← سجل التدقيق ← قابلية الرصد<br/>(Output guardrails → audit log → observability)"]
+    LLM["موجّه LLM: Claude / GPT / محلي — core/llm-router<br/>(LLM router: Claude / GPT / local — core/llm-router)"]
 
     CH --> GI --> RT --> SA
     SA --> GOV --> TR --> TOOLS --> GO
@@ -123,28 +123,28 @@ flowchart TB
 
 ```mermaid
 sequenceDiagram
-    participant L as سجل التدقيق
-    participant H as الموافق البشري
-    participant T as النظام الخلفي للأداة
-    participant P as محرّك السياسات
-    participant A as الوكيل المتخصص
-    participant R as وكيل الموجّه
-    participant U as المستخدم
+    participant L as سجل التدقيق (Audit log)
+    participant H as الموافق البشري (Human approver)
+    participant T as النظام الخلفي للأداة (Tool backend)
+    participant P as محرّك السياسات (Policy engine)
+    participant A as الوكيل المتخصص (Specialist agent)
+    participant R as وكيل الموجّه (Router agent)
+    participant U as المستخدم (User)
 
-    U->>R: طلب مع sessionId + traceId
-    R->>L: تدقيق: صُنّفت النيّة
-    R->>A: غلاف مع correlationId والتصنيف والاستقلالية
-    A->>P: هل يمكنني استدعاء أداة READ هذه؟
-    P-->>A: مسموح ضمن السقف
-    A->>T: استدعاء أداة
-    T-->>A: النتيجة
-    A->>L: تدقيق: استدعاء أداة
-    A->>P: هل يمكنني تنفيذ إجراء MUTATE هذا؟
-    P-->>A: يتطلب موافقة عند L2
-    A->>H: طلب موافقة مع السياق الكامل
-    H-->>A: تمت الموافقة مع المبرّر
-    A->>L: تدقيق: قرار الموافقة
-    A-->>U: الرد مع الاستشهادات
+    U->>R: طلب مع sessionId + traceId (request with sessionId + traceId)
+    R->>L: تدقيق: صُنّفت النيّة (audit: intent classified)
+    R->>A: غلاف مع correlationId والتصنيف والاستقلالية (envelope with correlationId, classification, autonomy)
+    A->>P: هل يمكنني استدعاء أداة READ هذه؟ (may I call this READ tool?)
+    P-->>A: مسموح ضمن السقف (allowed within ceiling)
+    A->>T: استدعاء أداة (tool call)
+    T-->>A: النتيجة (result)
+    A->>L: تدقيق: استدعاء أداة (audit: tool invocation)
+    A->>P: هل يمكنني تنفيذ إجراء MUTATE هذا؟ (may I execute this MUTATE action?)
+    P-->>A: يتطلب موافقة عند L2 (requires approval at L2)
+    A->>H: طلب موافقة مع السياق الكامل (approval request with full context)
+    H-->>A: تمت الموافقة مع المبرّر (approved with rationale)
+    A->>L: تدقيق: قرار الموافقة (audit: approval decision)
+    A-->>U: الرد مع الاستشهادات (response with citations)
 ```
 
 اتجاه القطاع (industry direction): MCP (Model Context Protocol) لربط الوكيل (agent)←الأداة (tool)، وبروتوكولات على نمط (pattern) A2A للربط وكيل←وكيل. نمط الغلاف (envelope) هنا يتوافق بسلاسة مع كليهما — اعتمد MCP لتكامل الأدوات (tool integration) مع نضوج الموصلات (connectors) (الأنظمة المصرفية الأساسية (core banking) وECM وPower BI لديها أصلًا أشكال أدوات تجريبية (mock tool shapes) في `src/tools/data/`)، لكن أبقِ غلاف الحوكمة (governance envelope) معيارك الداخلي (your internal standard): البروتوكولات المفتوحة (open protocols) تحمل الرسالة، وغلافك يحمل *سياق الصلاحية (authority context)*.
@@ -171,18 +171,18 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    S["الوكيل يقترح إجراءً"] --> C1{"هل البيانات ضمن سقف تصنيف الوكيل؟"}
-    C1 -- لا --> BLK["محظور + مُدقَّق"]
-    C1 -- نعم --> C2{"MUTATE على بيانات CONFIDENTIAL أو RESTRICTED؟"}
-    C2 -- نعم --> ESC["موافقة بشرية مطلوبة — قاعدة صارمة لا تتجاوزها السياسة"]
-    C2 -- لا --> C3{"هل انطلق مُحفّز تصعيد في السياسة؟"}
-    C3 -- نعم --> ESC
-    C3 -- لا --> C4{"مستوى الاستقلالية"}
-    C4 -- "L1" --> N["نفّذ + أبلغ البشر"]
-    C4 -- "L3" --> X["نفّذ + مراجعة لاحقة لعيّنات"]
-    ESC --> H{"الموافق المسمّى يقرّر"}
-    H -- موافقة --> XA["نفّذ + دقّق الموافقة"]
-    H -- رفض --> RJ["أُوقف — أُبلغ الوكيل والمستخدم، وقُيّد القرار في التدقيق"]
+    S["الوكيل يقترح إجراءً<br/>(Agent proposes an action)"] --> C1{"هل البيانات ضمن سقف تصنيف الوكيل؟<br/>(Data within the agent's classification ceiling?)"}
+    C1 -- "لا (no)" --> BLK["محظور + مُدقَّق<br/>(Blocked + audited)"]
+    C1 -- "نعم (yes)" --> C2{"MUTATE على بيانات CONFIDENTIAL أو RESTRICTED؟<br/>(MUTATE on CONFIDENTIAL or RESTRICTED data?)"}
+    C2 -- "نعم (yes)" --> ESC["موافقة بشرية مطلوبة — قاعدة صارمة لا تتجاوزها السياسة<br/>(Human approval required — hard rule, policy cannot override)"]
+    C2 -- "لا (no)" --> C3{"هل انطلق مُحفّز تصعيد في السياسة؟<br/>(Policy escalation trigger fires?)"}
+    C3 -- "نعم (yes)" --> ESC
+    C3 -- "لا (no)" --> C4{"مستوى الاستقلالية<br/>(Autonomy level)"}
+    C4 -- "L1" --> N["نفّذ + أبلغ البشر<br/>(Execute + notify humans)"]
+    C4 -- "L3" --> X["نفّذ + مراجعة لاحقة لعيّنات<br/>(Execute + sampled after-the-fact review)"]
+    ESC --> H{"الموافق المسمّى يقرّر<br/>(Named approver decides)"}
+    H -- "موافقة (approve)" --> XA["نفّذ + دقّق الموافقة<br/>(Execute + audit the approval)"]
+    H -- "رفض (reject)" --> RJ["أُوقف — أُبلغ الوكيل والمستخدم، وقُيّد القرار في التدقيق<br/>(Stopped — agent and user informed, decision audited)"]
 ```
 
 **تصميم الجانب البشري لا يقلّ أهمية عن تصميم جانب الوكيل (agent):** إرهاق الموافقات (approval fatigue) هو نمط الفشل (failure mode). إذا تلقّى دور ما مئات الموافقات (approvals) يوميًا، يتوقف البشر عن قراءتها. تتبّع حجم الموافقات (approval volume) ومعدّل التجاوز (override rate) لكل دور؛ فإذا كانت >95% من الطلبات تُعتمد دون تعديل لفئة مهام (task category) معيّنة على مدى فترة مستدامة، فهذه هي الحجة المبنية على البيانات لترقية (promotion) تلك الفئة إلى L3 — عبر إدارة التغيير (§9)، لا بتعديل prompt.
@@ -339,14 +339,14 @@ flowchart TD
 
 ```mermaid
 flowchart RL
-    P0["المرحلة 0 — الأسس: محرّك الحوكمة، الأغلفة، التدقيق، أدوات تجريبية (منجزة)"]
-    P1["المرحلة 1 — الظل L0: بيانات حقيقية للقراءة فقط، مقارنة بشرية، بناء المجموعات الذهبية"]
-    P2["المرحلة 2 — المساعَدة L1/L2: الوكلاء يقترحون، البشر يوافقون على التعديلات"]
-    P3["المرحلة 3 — استقلالية تحت الإشراف L3 لفئات المهام المستحقة + مساعدة قريبة من العملاء"]
+    P0["المرحلة 0 — الأسس: محرّك الحوكمة، الأغلفة، التدقيق، أدوات تجريبية (منجزة)<br/>(Phase 0 — Foundations: governance engine, envelopes, audit, mock tools (done))"]
+    P1["المرحلة 1 — الظل L0: بيانات حقيقية للقراءة فقط، مقارنة بشرية، بناء المجموعات الذهبية<br/>(Phase 1 — Shadow L0: real read-only data, humans compare, golden datasets built)"]
+    P2["المرحلة 2 — المساعَدة L1/L2: الوكلاء يقترحون، البشر يوافقون على التعديلات<br/>(Phase 2 — Assisted L1/L2: agents propose, humans approve mutations)"]
+    P3["المرحلة 3 — استقلالية تحت الإشراف L3 لفئات المهام المستحقة + مساعدة قريبة من العملاء<br/>(Phase 3 — Supervised autonomy L3 for earned task categories + customer-adjacent assist)"]
 
     P0 --> P1
-    P1 -->|"بوابة: نجاح المجموعة الذهبية، صفر تجاوزات، اجتياز تمرين إعادة البناء"| P2
-    P2 -->|"بوابة: موافقات دون تعديل مستدامة >95% لكل فئة"| P3
+    P1 -->|"بوابة: نجاح المجموعة الذهبية، صفر تجاوزات، اجتياز تمرين إعادة البناء (gate: golden-set success, zero bypasses, reconstruction drill passes)"| P2
+    P2 -->|"بوابة: موافقات دون تعديل مستدامة >95% لكل فئة (gate: sustained >95% unmodified approvals per category)"| P3
 ```
 
 كل ترقية = حزمة أدلة (نتائج التقييم (evaluation results)، وتاريخ مؤشرات الأداء الرئيسية (KPIs)، وسجلّ الحوادث (incident log)) ← التحقق المستقل (independent validation) ← اعتماد لجنة الحوكمة (governance committee sign-off). الاستقلالية (autonomy) تُكتسب لكل فئة مهام (task category)، ولا تُمنح لكل وكيل (agent).
